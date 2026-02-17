@@ -1,5 +1,7 @@
 package com.otr.lotto.domain;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +14,7 @@ import lombok.Setter;
 public class Prize {
     private Long id;
     private Long eventId;
+    private Long participantId;
     private Integer rank;
-    private Long amount;
-    private Integer winnersCount;
+    private LocalDateTime createdAt;
 }

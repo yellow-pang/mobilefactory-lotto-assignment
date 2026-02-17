@@ -1,11 +1,11 @@
 package com.otr.lotto.domain;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
 public class Participant {
     private Long id;
     private Long eventId;
-    private String phone;
-    private LocalDateTime participateDate;
+    private String phoneHash;
+    private Integer checkCount;
+    private LocalDateTime firstCheckedAt;
+    private LocalDateTime lastCheckedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
