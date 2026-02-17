@@ -1,6 +1,7 @@
 package com.otr.lotto.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.Getter;
 
 @Getter
