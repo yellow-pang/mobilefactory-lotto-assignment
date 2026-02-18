@@ -10,4 +10,20 @@
     VALUES (#{eventId}, #{participantId}, #{phoneHash}, #{type}, #{sentDate}, #{status})
   </insert>
 
+  <select id="findExistingReminders" resultType="com.otr.lotto.domain.SmsLog">
+    SELECT
+      id,
+      event_id,
+      participant_id,
+      phone_hash,
+      type,
+      sent_date,
+      status,
+      created_at
+    FROM sms_log
+    WHERE event_id = #{eventId}
+      AND sent_date = #{sentDate}
+      AND type = #{type}
+  </select>
+
 </mapper>

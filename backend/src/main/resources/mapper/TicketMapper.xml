@@ -21,4 +21,18 @@
     WHERE participant_id = #{participantId}
   </select>
 
+  <select id="findByParticipantIds" resultType="com.otr.lotto.domain.Ticket">
+    SELECT
+      id,
+      event_id,
+      participant_id,
+      lotto_number,
+      created_at
+    FROM ticket
+    WHERE participant_id IN
+    <foreach collection="participantIds" item="participantId" open="(" separator="," close=")">
+      #{participantId}
+    </foreach>
+  </select>
+
 </mapper>
