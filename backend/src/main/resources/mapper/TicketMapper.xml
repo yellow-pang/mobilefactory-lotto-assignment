@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.otr.lotto.mapper.TicketMapper">
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO ticket (event_id, participant_id, lotto_number)
+    VALUES (#{eventId}, #{participantId}, #{lottoNumber})
+  </insert>
+
+  <select id="findByParticipantId" resultType="com.otr.lotto.domain.Ticket">
+    SELECT
+      id,
+      event_id,
+      participant_id,
+      lotto_number,
+      created_at
+    FROM ticket
+    WHERE participant_id = #{participantId}
+  </select>
+
+</mapper>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.otr.lotto.mapper.ParticipantMapper">
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO participant (event_id, phone_hash)
+    VALUES (#{eventId}, #{phoneHash})
+  </insert>
+
+  <select id="findByEventAndPhoneHash" resultType="com.otr.lotto.domain.Participant">
+    SELECT
+      id,
+      event_id,
+      phone_hash,
+      check_count,
+      first_checked_at,
+      last_checked_at,
+      created_at,
+      updated_at
+    FROM participant
+    WHERE event_id = #{eventId}
+      AND phone_hash = #{phoneHash}
+  </select>
+
+  <select id="countByEvent" resultType="long">
+    SELECT COUNT(*)
+    FROM participant
+    WHERE event_id = #{eventId}
+  </select>
+
+</mapper>
