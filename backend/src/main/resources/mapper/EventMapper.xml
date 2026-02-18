@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.otr.lotto.mapper.EventMapper">
+
+  <select id="findById" resultType="com.otr.lotto.domain.Event">
+    SELECT
+      id,
+      name,
+      event_start,
+      event_end,
+      announce_start,
+      announce_end,
+      max_participants,
+      fixed_first_phone_hash,
+      created_at,
+      updated_at
+    FROM event
+    WHERE id = #{id}
+  </select>
+
+</mapper>
