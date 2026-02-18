@@ -100,6 +100,7 @@ cd backend
 ### ✅ 완료된 기능
 
 #### 백엔드 구현
+
 - **DB 스키마 작성 및 적용 완료** (event/participant/ticket/prize/sms_log)
 - **공통 인프라**:
   - ApiResponse 래퍼 (성공/실패 통합 응답)
@@ -130,10 +131,12 @@ cd backend
   - SMS 로그 기록
 
 #### 프론트엔드
+
 - Vue 3 + Vite + TypeScript 프로젝트 스캐폴드 생성
 - Vue Router 설정 완료
 
 #### 문서
+
 - **API 명세서** (`doc/API.md`):
   - 참여/결과 조회/관리자 API 스펙 정의
   - 당첨 로직 상세 설명 (하이브리드 방식)
@@ -143,6 +146,7 @@ cd backend
 ### 🔧 기술 스택 상세
 
 **Backend**:
+
 - Spring Boot 3.5.10, Java 17
 - MyBatis 3.0.5 (XML 매퍼)
 - Lombok (생성자 주입)
@@ -150,24 +154,26 @@ cd backend
 - Transaction 관리 (@Transactional)
 
 **Frontend**:
+
 - Vue 3 Composition API
 - TypeScript
 - Vite
 - Vue Router
 
 **Database**:
+
 - MariaDB (InnoDB)
 - SHA-256 해시 기반 전화번호 보안
 - 인덱스: phone_hash, event_id, participant_id
 
 ### 📋 API 엔드포인트
 
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| POST | `/api/participations` | 로또 이벤트 참여 |
-| POST | `/api/results/check` | 당첨 결과 조회 |
-| POST | `/api/admin/events/{eventId}/draw` | 당첨 산정 실행 |
-| POST | `/api/admin/events/{eventId}/remind-unconfirmed` | 미확인 당첨자 안내 |
+| Method | Endpoint                                         | 설명               |
+| ------ | ------------------------------------------------ | ------------------ |
+| POST   | `/api/participations`                            | 로또 이벤트 참여   |
+| POST   | `/api/results/check`                             | 당첨 결과 조회     |
+| POST   | `/api/admin/events/{eventId}/draw`               | 당첨 산정 실행     |
+| POST   | `/api/admin/events/{eventId}/remind-unconfirmed` | 미확인 당첨자 안내 |
 
 상세 API 스펙은 `doc/API.md` 참조.
 
