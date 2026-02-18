@@ -34,4 +34,9 @@ public interface ParticipantMapper {
      * 특정 이벤트의 모든 참여자 조회 (4등 후보군 선정용)
      */
     List<Participant> findAllByEvent(@Param("eventId") Long eventId);
+
+    /**
+     * ID로 참여자 조회
+     */
+    Participant findById(@Param("id") Long id);
 }

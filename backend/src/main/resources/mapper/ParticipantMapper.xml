@@ -75,4 +75,18 @@
     ORDER BY id
   </select>
 
+  <select id="findById" resultType="com.otr.lotto.domain.Participant">
+    SELECT
+      id,
+      event_id,
+      phone_hash,
+      check_count,
+      first_checked_at,
+      last_checked_at,
+      created_at,
+      updated_at
+    FROM participant
+    WHERE id = #{id}
+  </select>
+
 </mapper>

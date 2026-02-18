@@ -219,12 +219,12 @@ public class DrawServiceImpl implements DrawService {
      * 등수별 필요 인원 수
      */
     private int getRequiredCount(int rank) {
-        switch (rank) {
-            case 2: return 5;
-            case 3: return 44;
-            case 4: return 950;
-            default: return 0;
-        }
+        return switch (rank) {
+            case 2 -> 5;
+            case 3 -> 44;
+            case 4 -> 950;
+            default -> 0;
+        };
     }
 
     /**

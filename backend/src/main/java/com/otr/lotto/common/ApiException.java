@@ -23,6 +23,7 @@ public class ApiException extends RuntimeException {
         return errorCode.getCode();
     }
 
+    @Override
     public String getMessage() {
         return customMessage != null ? customMessage : errorCode.getMessage();
     }
