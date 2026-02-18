@@ -17,4 +17,31 @@
       AND participant_id = #{participantId}
   </select>
 
+  <insert id="insertBatch">
+    INSERT INTO prize (event_id, participant_id, rank)
+    VALUES
+    <foreach collection="prizes" item="prize" separator=",">
+      (#{prize.eventId}, #{prize.participantId}, #{prize.rank})
+    </foreach>
+  </insert>
+
+  <select id="countByEvent" resultType="long">
+    SELECT COUNT(*)
+    FROM prize
+    WHERE event_id = #{eventId}
+  </select>
+
+  <select id="findUnconfirmedWinners" resultType="com.otr.lotto.domain.Prize">
+    SELECT
+      p.id,
+      p.event_id,
+      p.participant_id,
+      p.rank,
+      p.created_at
+    FROM prize p
+    INNER JOIN participant pt ON p.participant_id = pt.id
+    WHERE p.event_id = #{eventId}
+      AND pt.check_count = 0
+  </select>
+
 </mapper>
