@@ -12,4 +12,10 @@ public interface ParticipantMapper {
     Participant findByEventAndPhoneHash(@Param("eventId") Long eventId, @Param("phoneHash") String phoneHash);
 
     long countByEvent(@Param("eventId") Long eventId);
+
+    int updateCheckCountAndTimestamps(
+            @Param("eventId") Long eventId,
+            @Param("participantId") Long participantId,
+            @Param("checkedAt") java.time.LocalDateTime checkedAt
+    );
 }

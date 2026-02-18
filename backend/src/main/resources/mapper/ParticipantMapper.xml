@@ -31,4 +31,17 @@
     WHERE event_id = #{eventId}
   </select>
 
+  <update id="updateCheckCountAndTimestamps">
+    UPDATE participant
+    SET
+      check_count = check_count + 1,
+      first_checked_at = CASE
+        WHEN check_count = 0 THEN #{checkedAt}
+        ELSE first_checked_at
+      END,
+      last_checked_at = #{checkedAt}
+    WHERE event_id = #{eventId}
+      AND id = #{participantId}
+  </update>
+
 </mapper>
