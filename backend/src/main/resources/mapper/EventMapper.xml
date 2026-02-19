@@ -41,4 +41,24 @@
     ]]>
   </select>
 
+  <select id="findActiveAnnounceEvent" resultType="com.otr.lotto.domain.Event">
+    <![CDATA[
+    SELECT
+      id,
+      name,
+      event_start,
+      event_end,
+      announce_start,
+      announce_end,
+      max_participants,
+      fixed_first_phone_hash,
+      created_at,
+      updated_at
+    FROM event
+    WHERE #{baseDate} >= announce_start
+      AND #{baseDate} <= announce_end
+    LIMIT 1
+    ]]>
+  </select>
+
 </mapper>

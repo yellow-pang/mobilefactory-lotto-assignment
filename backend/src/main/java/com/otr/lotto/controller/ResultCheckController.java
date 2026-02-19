@@ -35,7 +35,7 @@ public class ResultCheckController {
      */
     @GetMapping("/check-period")
     public ApiResponse<Void> checkAnnouncePeriod() {
-        Event event = eventMapper.findActiveEvent(LocalDate.now());
+        Event event = eventMapper.findActiveAnnounceEvent(LocalDate.now());
         if (event == null) {
             throw new ApiException(ErrorCode.ANNOUNCE_NOT_ACTIVE);
         }
