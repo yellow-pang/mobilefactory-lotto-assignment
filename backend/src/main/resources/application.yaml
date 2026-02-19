@@ -2,9 +2,12 @@ spring:
   application:
     name: lotto
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    # url: ${DB_URL}
+    # username: ${DB_USERNAME}
+    # password: ${DB_PASSWORD}
+    url: jdbc:mariadb://localhost:3306/lotto_event
+    username: lotto_app
+    password: passw0rd
     driver-class-name: org.mariadb.jdbc.Driver
 
 mybatis:

@@ -111,3 +111,28 @@ CREATE TABLE sms_log (
   INDEX idx_sms_event_type_status (event_id, type, status),
   INDEX idx_sms_event_phone (event_id, phone_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 6) 초기 이벤트 데이터 (요구사항 기간)
+INSERT INTO event (
+  id,
+  name,
+  event_start,
+  event_end,
+  announce_start,
+  announce_end,
+  max_participants,
+  fixed_first_phone_hash,
+  created_at,
+  updated_at
+) VALUES (
+  1,
+  'Spring Lotto 2025',
+  '2025-02-01',
+  '2025-03-31',
+  '2025-04-01',
+  '2025-04-15',
+  10000,
+  NULL,
+  NOW(),
+  NOW()
+);

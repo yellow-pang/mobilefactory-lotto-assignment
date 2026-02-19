@@ -29,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ParticipationServiceImpl implements ParticipationService {
-    private static final long DEFAULT_EVENT_ID = 1L;
     private static final int DEFAULT_MAX_PARTICIPANTS = 10_000;
     private static final String SMS_TYPE_PARTICIPATION_NUMBER = "PARTICIPATION_NUMBER";
     private static final String SMS_STATUS_SENT = "SENT";
@@ -42,12 +41,11 @@ public class ParticipationServiceImpl implements ParticipationService {
     @Transactional
     @Override
     public ParticipateResponse participate(ParticipateRequest request) {
-        Event event = eventMapper.findById(DEFAULT_EVENT_ID);
+        // 현재 활성화된 이벤트 자동 조회
+        Event event = eventMapper.findActiveEvent(LocalDate.now());
         if (event == null) {
-            throw new ApiException(ErrorCode.NOT_FOUND);
+            throw new ApiException(ErrorCode.EVENT_NOT_ACTIVE);
         }
-
-        validateEventPeriod(event);
         validateCapacity(event);
 
         String phoneHash = hashPhone(request.getPhone());
@@ -89,12 +87,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         return new ParticipateResponse(participant.getId(), lottoNumber);
     }
 
-    private void validateEventPeriod(Event event) {
-        LocalDate today = LocalDate.now();
-        if (today.isBefore(event.getEventStart()) || today.isAfter(event.getEventEnd())) {
-            throw new ApiException(ErrorCode.EVENT_NOT_ACTIVE);
-        }
-    }
+
 
     private void validateCapacity(Event event) {
         long currentCount = participantMapper.countByEvent(event.getId());
