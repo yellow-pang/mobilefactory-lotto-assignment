@@ -22,6 +22,7 @@ export interface ResultCheckResponse {
   isWinner?: boolean | null;
   lottoNumber?: string;
   amount?: number | null;
+  checkCount?: number;
 }
 
 export interface ApiResponse<T> {

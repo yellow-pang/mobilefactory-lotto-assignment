@@ -22,4 +22,7 @@ public class ResultCheckResponse {
     // 공통 필드
     private String lottoNumber;
     private Long amount;
+    
+    // 조회 횟수
+    private Integer checkCount;
 }
