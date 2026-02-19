@@ -15,6 +15,8 @@ const isVerified = ref(false);
 const isVerificationSent = ref(false);
 const verificationError = ref("");
 const isVerifying = ref(false);
+const verificationTimeLeft = ref(180); // 3분 = 180초
+const verificationTimerInterval = ref<number | null>(null);
 
 const result = ref<ParticipateResponse | null>(null);
 
@@ -43,30 +45,53 @@ const sendVerificationCode = () => {
     return;
   }
 
-  // Mock 인증번호 생성 (6자리)
+  // Mock 인증번호 생성 (실제로는 SMS로 발송)
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   verificationCode.value = code;
   isVerificationSent.value = true;
+  verificationTimeLeft.value = 180; // 3분 초기화
+
+  // 타이머 시작
+  if (verificationTimerInterval.value) {
+    clearInterval(verificationTimerInterval.value);
+  }
+  verificationTimerInterval.value = window.setInterval(() => {
+    verificationTimeLeft.value--;
+    if (verificationTimeLeft.value <= 0) {
+      if (verificationTimerInterval.value) {
+        clearInterval(verificationTimerInterval.value);
+      }
+      verificationError.value =
+        "인증번호 유효시간이 만료되었습니다. 재전송해주세요.";
+      isVerificationSent.value = false;
+    }
+  }, 1000);
 
   // 실제 환경에서는 SMS API 호출
   console.log(`[Mock SMS] 인증번호: ${code} → ${phone.value}`);
-  alert(`인증번호가 발송되었습니다.\n(Mock: ${code})`);
 };
 
 const verifyCode = () => {
   verificationError.value = "";
   isVerifying.value = true;
 
-  // Mock 검증 (실제로는 백엔드 API 호출)
+  // Mock 인증: 아무 번호나 입력해도 자동 성공
   setTimeout(() => {
-    if (userInputCode.value === verificationCode.value) {
-      isVerified.value = true;
-      verificationError.value = "";
-    } else {
-      verificationError.value = "인증번호가 일치하지 않습니다.";
-    }
+    isVerified.value = true;
     isVerifying.value = false;
+
+    // 타이머 정지
+    if (verificationTimerInterval.value) {
+      clearInterval(verificationTimerInterval.value);
+      verificationTimerInterval.value = null;
+    }
   }, 500);
+};
+
+const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 };
 
 const handleSubmit = () => {
@@ -164,19 +189,24 @@ const resetForm = () => {
 
           <!-- 인증번호 입력 필드 (인증번호 발송 후 표시) -->
           <label v-if="isVerificationSent && !isVerified" class="field">
-            <span class="field-label">인증번호</span>
+            <div class="verification-header">
+              <span class="field-label">인증번호</span>
+              <span class="verification-timer">{{
+                formatTime(verificationTimeLeft)
+              }}</span>
+            </div>
             <div class="phone-input-group">
               <InputText
                 v-model="userInputCode"
                 type="text"
-                placeholder="6자리 인증번호 입력"
+                placeholder="인증번호 6자리 입력"
                 class="field-input"
                 maxlength="6"
                 :disabled="isVerifying || isLoading"
               />
               <Button
                 type="button"
-                label="확인"
+                label="인증하기"
                 severity="success"
                 :disabled="userInputCode.length !== 6 || isVerifying"
                 :loading="isVerifying"
@@ -223,7 +253,11 @@ const resetForm = () => {
         </Message>
 
         <div v-if="showResult" class="result">
-          <div class="result-title">Ticket Issued</div>
+          <Message severity="success" :closable="false" class="success-message">
+            <strong>참여가 완료되었습니다!</strong><br />
+            로또 번호가 SMS로 발송되었습니다.
+          </Message>
+          <div class="result-title">발급된 티켓 정보</div>
           <div class="result-grid">
             <div class="result-item">
               <span class="result-label">Participant ID</span>
@@ -273,6 +307,22 @@ const resetForm = () => {
 
 .phone-input-group .field-input {
   flex: 1;
+}
+
+.verification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.verification-timer {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.success-message {
+  margin-bottom: 16px;
 }
 
 .actions {
