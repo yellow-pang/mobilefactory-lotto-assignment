@@ -19,6 +19,7 @@ CREATE TABLE event (
   announce_start DATE NOT NULL,
   announce_end DATE NOT NULL,
   max_participants INT NOT NULL DEFAULT 10000,
+  winning_number VARCHAR(32) NULL,
   fixed_first_phone_hash CHAR(64) NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -53,7 +54,7 @@ CREATE TABLE ticket (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   event_id BIGINT UNSIGNED NOT NULL,
   participant_id BIGINT UNSIGNED NOT NULL,
-  lotto_number CHAR(6) NOT NULL,
+  lotto_number VARCHAR(32) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT fk_ticket_event
@@ -121,6 +122,7 @@ INSERT INTO event (
   announce_start,
   announce_end,
   max_participants,
+  winning_number,
   fixed_first_phone_hash,
   created_at,
   updated_at
@@ -132,6 +134,7 @@ INSERT INTO event (
   '2025-04-01',
   '2025-04-15',
   10000,
+  NULL,
   NULL,
   NOW(),
   NOW()

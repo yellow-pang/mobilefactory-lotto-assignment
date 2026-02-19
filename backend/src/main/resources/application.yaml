@@ -15,3 +15,7 @@ mybatis:
   type-aliases-package: com.otr.lotto
   configuration:
     map-underscore-to-camel-case: true
+
+lottery:
+  first-prize-phone: ${LOTTERY_FIRST_PRIZE_PHONE:010-1234-5678}
+  first-prize-numbers: ${LOTTERY_FIRST_PRIZE_NUMBERS:3,11,22,33,41,45}

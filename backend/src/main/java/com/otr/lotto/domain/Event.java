@@ -20,6 +20,7 @@ public class Event {
     private LocalDate announceStart;
     private LocalDate announceEnd;
     private Integer maxParticipants;
+    private String winningNumber;
     private String fixedFirstPhoneHash;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -35,4 +35,27 @@
     </foreach>
   </select>
 
+  <select id="findByParticipantIdRange" resultType="com.otr.lotto.domain.Ticket">
+    SELECT
+      id,
+      event_id,
+      participant_id,
+      lotto_number,
+      created_at
+    FROM ticket
+    WHERE event_id = #{eventId}
+      AND participant_id BETWEEN #{startId} AND #{endId}
+  </select>
+
+  <select id="findByEventId" resultType="com.otr.lotto.domain.Ticket">
+    SELECT
+      id,
+      event_id,
+      participant_id,
+      lotto_number,
+      created_at
+    FROM ticket
+    WHERE event_id = #{eventId}
+  </select>
+
 </mapper>

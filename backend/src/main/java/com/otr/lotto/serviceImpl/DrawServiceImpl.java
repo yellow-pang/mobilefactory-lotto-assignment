@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.otr.lotto.common.ApiException;
 import com.otr.lotto.common.ErrorCode;
+import com.otr.lotto.config.LotteryProperties;
 import com.otr.lotto.domain.Event;
 import com.otr.lotto.domain.Participant;
 import com.otr.lotto.domain.Prize;
@@ -35,6 +36,7 @@ public class DrawServiceImpl implements DrawService {
     private final ParticipantMapper participantMapper;
     private final TicketMapper ticketMapper;
     private final PrizeMapper prizeMapper;
+    private final LotteryProperties lotteryProperties;
 
     @Override
     @Transactional
@@ -52,167 +54,204 @@ public class DrawServiceImpl implements DrawService {
             throw new ApiException(ErrorCode.NOT_FOUND);
         }
 
-        // 3. 1등 당첨자 결정
-        Participant firstPrizeWinner = determineFirstPrizeWinner(event);
+        // 3. 당첨 번호 결정 (설정값)
+        List<Integer> winningNumbers = lotteryProperties.getWinningNumbers();
+        Participant firstPrizeWinner = findFirstPrizeWinner(eventId, winningNumbers);
         if (firstPrizeWinner == null) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST);
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "당첨 번호와 일치하는 참가자가 없습니다.");
         }
 
-        // 4. 당첨 번호 결정 (1등 당첨자의 로또 번호)
-        Ticket firstPrizeTicket = ticketMapper.findByParticipantId(firstPrizeWinner.getId());
-        String winningNumber = firstPrizeTicket.getLottoNumber();
-
-        // 5. 당첨자 리스트 생성
+        // 4. 당첨자 리스트 생성
         List<Prize> prizes = new ArrayList<>();
         Set<Long> selectedParticipantIds = new HashSet<>();
 
-        // 5-1. 1등 추가
+        // 4-1. 1등 추가
         prizes.add(createPrize(eventId, firstPrizeWinner.getId(), 1));
         selectedParticipantIds.add(firstPrizeWinner.getId());
 
-        // 5-2. 2등 (5명): 참여 번호 2000~7000번 중 5자리 일치 우선
-        List<Participant> secondPrizeCandidates = participantMapper.findByIdRange(eventId, 2000L, 7000L);
-        secondPrizeCandidates.removeIf(p -> selectedParticipantIds.contains(p.getId()));
-        List<Prize> secondPrizes = selectWinners(eventId, secondPrizeCandidates, winningNumber, 5, 2);
+        // 4-2. 모든 참가자 조회
+        List<Participant> allParticipants = participantMapper.findAllByEvent(eventId);
+        allParticipants.removeIf(p -> selectedParticipantIds.contains(p.getId()));
+
+        // 4-3. 모든 참가자의 티켓 정보 조회
+        List<Long> allParticipantIds = allParticipants.stream()
+            .map(Participant::getId)
+            .collect(Collectors.toList());
+        
+        List<Ticket> allTickets = ticketMapper.findByParticipantIds(allParticipantIds);
+        Map<Long, String> ticketMap = new HashMap<>();
+        for (Ticket ticket : allTickets) {
+            ticketMap.put(ticket.getParticipantId(), ticket.getLottoNumber());
+        }
+
+        // 4-4. 자리수 일치 개수별로 참가자 분류
+        Map<Integer, List<Participant>> matchCountGroups = new HashMap<>();
+        for (int i = 6; i >= 0; i--) {
+            matchCountGroups.put(i, new ArrayList<>());
+        }
+
+        for (Participant p : allParticipants) {
+            String lottoNumber = ticketMap.get(p.getId());
+            if (lottoNumber != null) {
+                int matchCount = countMatchingNumbers(winningNumbers, lottoNumber);
+                matchCountGroups.get(matchCount).add(p);
+            }
+        }
+
+        // 4-5. 2등 (5명): 참여자 번호 2000~7000 범위 내에서 선정
+        Set<Long> secondEligibleIds = allParticipants.stream()
+            .map(Participant::getId)
+            .filter(id -> id >= 2000 && id <= 7000)
+            .collect(Collectors.toSet());
+        List<Prize> secondPrizes = selectPrizesByMatchCount(
+            eventId,
+            matchCountGroups,
+            5,
+            2,
+            secondEligibleIds
+        );
         prizes.addAll(secondPrizes);
         secondPrizes.forEach(p -> selectedParticipantIds.add(p.getParticipantId()));
+        updateAvailableCandidates(matchCountGroups, selectedParticipantIds);
 
-        // 5-3. 3등 (44명): 참여 번호 1000~8000번 중 4자리 일치 우선
-        List<Participant> thirdPrizeCandidates = participantMapper.findByIdRange(eventId, 1000L, 8000L);
-        thirdPrizeCandidates.removeIf(p -> selectedParticipantIds.contains(p.getId()));
-        List<Prize> thirdPrizes = selectWinners(eventId, thirdPrizeCandidates, winningNumber, 4, 3);
+        // 4-6. 3등 (44명): 참여자 번호 1000~8000 범위 내에서 선정
+        Set<Long> thirdEligibleIds = allParticipants.stream()
+            .map(Participant::getId)
+            .filter(id -> id >= 1000 && id <= 8000)
+            .collect(Collectors.toSet());
+        List<Prize> thirdPrizes = selectPrizesByMatchCount(
+            eventId,
+            matchCountGroups,
+            4,
+            3,
+            thirdEligibleIds
+        );
         prizes.addAll(thirdPrizes);
         thirdPrizes.forEach(p -> selectedParticipantIds.add(p.getParticipantId()));
+        updateAvailableCandidates(matchCountGroups, selectedParticipantIds);
 
-        // 5-4. 4등 (950명): 전체 참여자 중 3자리 일치 우선
-        List<Participant> fourthPrizeCandidates = participantMapper.findAllByEvent(eventId);
-        fourthPrizeCandidates.removeIf(p -> selectedParticipantIds.contains(p.getId()));
-        List<Prize> fourthPrizes = selectWinners(eventId, fourthPrizeCandidates, winningNumber, 3, 4);
+        // 4-7. 4등 (950명): 전체 참여자 대상
+        List<Prize> fourthPrizes = selectPrizesByMatchCount(eventId, matchCountGroups, 3, 4, null);
         prizes.addAll(fourthPrizes);
 
-        // 6. Prize 테이블에 일괄 삽입
+        // 5. Prize 테이블에 일괄 삽입
         if (!prizes.isEmpty()) {
             prizeMapper.insertBatch(prizes);
         }
 
-        // 7. 결과 반환
+        // 6. 결과 반환
         return buildDrawResponse(eventId);
     }
 
     /**
-     * 1등 당첨자 결정
-     * - fixedFirstPhoneHash가 있으면 해당 참여자
-     * - 없으면 2000~7000번 중 랜덤
+     * 당첨 번호와 일치하는 1등 당첨자 찾기
      */
-    private Participant determineFirstPrizeWinner(Event event) {
-        if (event.getFixedFirstPhoneHash() != null && !event.getFixedFirstPhoneHash().isEmpty()) {
-            Participant fixed = participantMapper.findByEventAndPhoneHash(
-                event.getId(), 
-                event.getFixedFirstPhoneHash()
-            );
-            if (fixed != null) {
-                return fixed;
+    private Participant findFirstPrizeWinner(Long eventId, List<Integer> winningNumbers) {
+        List<Participant> allParticipants = participantMapper.findAllByEvent(eventId);
+        List<Ticket> allTickets = ticketMapper.findByParticipantIds(
+            allParticipants.stream().map(Participant::getId).collect(Collectors.toList())
+        );
+
+        // 당첨 번호와 정확히 일치하는 참가자 찾기
+        for (Ticket ticket : allTickets) {
+            if (countMatchingNumbers(winningNumbers, ticket.getLottoNumber()) == 6) {
+                return allParticipants.stream()
+                    .filter(p -> p.getId().equals(ticket.getParticipantId()))
+                    .findFirst()
+                    .orElse(null);
             }
         }
-
-        // fixedFirstPhoneHash가 없거나 해당 참여자가 없는 경우
-        List<Participant> candidates = participantMapper.findByIdRange(event.getId(), 2000L, 7000L);
-        if (candidates.isEmpty()) {
-            return null;
-        }
-        Collections.shuffle(candidates);
-        return candidates.get(0);
+        
+        return null;
     }
 
     /**
-     * 등수별 당첨자 선정
+     * 등수별 당첨자 선정 (자리수 일치 기준)
      * 
-     * @param eventId 이벤트 ID
-     * @param candidates 후보군
-     * @param winningNumber 당첨 번호
-     * @param matchDigits 일치해야 할 자릿수 (5: 2등, 4: 3등, 3: 4등)
-     * @param rank 등수
-     * @return 선정된 Prize 리스트
+     * 전략:
+     * 1. matchCount 이상 일치하는 사람들 우선 선택
+     * 2. 부족하면 matchCount-1, matchCount-2... 순으로 보충
      */
-    private List<Prize> selectWinners(
+    private List<Prize> selectPrizesByMatchCount(
         Long eventId,
-        List<Participant> candidates,
-        String winningNumber,
-        int matchDigits,
-        int rank
+        Map<Integer, List<Participant>> matchCountGroups,
+        int targetMatchCount,
+        int rank,
+        Set<Long> allowedParticipantIds
     ) {
         int requiredCount = getRequiredCount(rank);
         List<Prize> prizes = new ArrayList<>();
 
-        if (candidates.isEmpty()) {
-            return prizes;
-        }
-
-        // 1. 후보군의 티켓 조회
-        List<Long> candidateIds = candidates.stream()
-            .map(Participant::getId)
-            .collect(Collectors.toList());
-        
-        List<Ticket> tickets = ticketMapper.findByParticipantIds(candidateIds);
-        
-        // participantId -> lottoNumber 매핑
-        Map<Long, String> ticketMap = new HashMap<>();
-        for (Ticket ticket : tickets) {
-            ticketMap.put(ticket.getParticipantId(), ticket.getLottoNumber());
-        }
-
-        // 2. 자리수 일치자 필터링
-        List<Participant> matched = new ArrayList<>();
-        List<Participant> unmatched = new ArrayList<>();
-
-        for (Participant candidate : candidates) {
-            String lottoNumber = ticketMap.get(candidate.getId());
-            if (lottoNumber != null && countMatchingDigits(winningNumber, lottoNumber) >= matchDigits) {
-                matched.add(candidate);
-            } else {
-                unmatched.add(candidate);
+        // 우선으로 targetMatchCount부터 시작해서 낮은 수로 내려가며 선택
+        for (int matchCount = targetMatchCount; matchCount >= 0 && prizes.size() < requiredCount; matchCount--) {
+            List<Participant> candidates = matchCountGroups.getOrDefault(matchCount, new ArrayList<>());
+            if (allowedParticipantIds != null) {
+                candidates = candidates.stream()
+                    .filter(p -> allowedParticipantIds.contains(p.getId()))
+                    .collect(Collectors.toList());
+            }
+            
+            if (!candidates.isEmpty()) {
+                Collections.shuffle(candidates);
+                int needed = requiredCount - prizes.size();
+                int toTake = Math.min(needed, candidates.size());
+                
+                for (int i = 0; i < toTake; i++) {
+                    prizes.add(createPrize(eventId, candidates.get(i).getId(), rank));
+                }
             }
         }
 
-        // 3. 일치자 우선 선택
-        Collections.shuffle(matched);
-        int selectedCount = 0;
-
-        for (Participant p : matched) {
-            if (selectedCount >= requiredCount) break;
-            prizes.add(createPrize(eventId, p.getId(), rank));
-            selectedCount++;
-        }
-
-        // 4. 부족하면 불일치자 중에서 랜덤 선택
-        if (selectedCount < requiredCount) {
-            Collections.shuffle(unmatched);
-            for (Participant p : unmatched) {
-                if (selectedCount >= requiredCount) break;
-                prizes.add(createPrize(eventId, p.getId(), rank));
-                selectedCount++;
-            }
+        if (allowedParticipantIds != null && prizes.size() < requiredCount) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "조건을 만족하는 당첨자가 부족합니다.");
         }
 
         return prizes;
     }
 
     /**
-     * 연속 자리수 일치 개수 계산 (앞자리부터)
+     * 다음 등수 선택을 위해 이미 선택된 참가자 제거
      */
-    private int countMatchingDigits(String winningNumber, String lottoNumber) {
-        int minLength = Math.min(winningNumber.length(), lottoNumber.length());
+    private void updateAvailableCandidates(
+        Map<Integer, List<Participant>> matchCountGroups,
+        Set<Long> selectedParticipantIds
+    ) {
+        for (List<Participant> list : matchCountGroups.values()) {
+            list.removeIf(p -> selectedParticipantIds.contains(p.getId()));
+        }
+    }
+
+    /**
+     * 번호 일치 개수 계산 (1~45 번호 기준)
+     */
+    private int countMatchingNumbers(List<Integer> winningNumbers, String lottoNumbersCsv) {
+        Set<Integer> winningSet = new HashSet<>(winningNumbers);
+        List<Integer> lottoNumbers = parseNumbers(lottoNumbersCsv);
         int count = 0;
-        
-        for (int i = 0; i < minLength; i++) {
-            if (winningNumber.charAt(i) == lottoNumber.charAt(i)) {
+
+        for (int number : lottoNumbers) {
+            if (winningSet.contains(number)) {
                 count++;
-            } else {
-                break; // 연속 일치가 끊기면 종료
             }
         }
-        
+
         return count;
+    }
+
+    private List<Integer> parseNumbers(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String[] parts = value.split(",");
+        List<Integer> numbers = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                numbers.add(Integer.valueOf(trimmed));
+            }
+        }
+        return numbers;
     }
 
     /**
@@ -242,7 +281,6 @@ public class DrawServiceImpl implements DrawService {
      * DrawResponse 생성
      */
     private DrawResponse buildDrawResponse(Long eventId) {
-        // 실제 저장된 등수별 카운트 조회 (간소화를 위해 고정값 반환)
         DrawResponse response = new DrawResponse();
         response.setEventId(eventId);
         response.setTotalWinners(1000);

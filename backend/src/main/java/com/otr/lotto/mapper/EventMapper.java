@@ -22,4 +22,9 @@ public interface EventMapper {
      * @return 발표 기간 Event (없으면 null)
      */
     Event findActiveAnnounceEvent(@Param("baseDate") java.time.LocalDate baseDate);
+
+    /**
+     * 당첨 번호 업데이트
+     */
+    int updateWinningNumber(@Param("id") Long id, @Param("winningNumber") String winningNumber);
 }
