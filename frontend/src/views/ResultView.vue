@@ -6,11 +6,10 @@ const phone = ref("");
 const errorMessage = ref("");
 const isLoading = ref(false);
 const submitted = ref(false);
-const checkCount = ref(0);
 const isAnnounceActive = ref<boolean | null>(null);
 const result = ref<ResultCheckResponse | null>(null);
 
-const isFirstCheck = computed(() => checkCount.value === 0);
+const isFirstCheck = computed(() => result.value?.checkCount === 1);
 const isFormEnabled = computed(() => isAnnounceActive.value === true);
 
 onMounted(async () => {
@@ -60,7 +59,6 @@ const handleSubmit = () => {
     .then((data) => {
       result.value = data;
       submitted.value = true;
-      checkCount.value += 1;
     })
     .catch((error) => {
       errorMessage.value =
@@ -75,7 +73,6 @@ const resetForm = () => {
   phone.value = "";
   errorMessage.value = "";
   submitted.value = false;
-  checkCount.value = 0;
   result.value = null;
 };
 </script>
@@ -89,13 +86,21 @@ const resetForm = () => {
       </template>
       <template #content>
         <!-- 기한 외 메시지 -->
-        <Message v-if="isAnnounceActive === false" severity="error" :closable="false">
+        <Message
+          v-if="isAnnounceActive === false"
+          severity="error"
+          :closable="false"
+        >
           <strong>Announcement Period Has Ended</strong><br />
           The announcement period has closed. Thank you for participating.
         </Message>
 
         <!-- 확인중 로딩 -->
-        <Message v-else-if="isAnnounceActive === null" severity="info" :closable="false">
+        <Message
+          v-else-if="isAnnounceActive === null"
+          severity="info"
+          :closable="false"
+        >
           Loading announcement information...
         </Message>
 
@@ -130,7 +135,11 @@ const resetForm = () => {
           </div>
         </form>
 
-        <Message v-if="errorMessage && isFormEnabled" severity="warn" :closable="false">
+        <Message
+          v-if="errorMessage && isFormEnabled"
+          severity="warn"
+          :closable="false"
+        >
           {{ errorMessage }}
         </Message>
 

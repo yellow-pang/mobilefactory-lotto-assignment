@@ -53,12 +53,17 @@ public class ResultCheckServiceImpl implements ResultCheckService {
         LocalDateTime checkedAt = LocalDateTime.now();
         participantMapper.updateCheckCountAndTimestamps(event.getId(), participant.getId(), checkedAt);
 
+        ResultCheckResponse response = new ResultCheckResponse();
+        response.setCheckCount(currentCount + 1);
+
         if (currentCount == 0) {
             Integer rank = prize != null ? prize.getRank() : null;
-            return new ResultCheckResponse(rank, null, null, null);
+            response.setRank(rank);
+        } else {
+            response.setIsWinner(isWinner);
         }
 
-        return new ResultCheckResponse(null, isWinner, null, null);
+        return response;
     }
 
 
