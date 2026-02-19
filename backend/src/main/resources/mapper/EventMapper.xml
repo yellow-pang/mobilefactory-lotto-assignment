@@ -21,4 +21,24 @@
     WHERE id = #{id}
   </select>
 
+  <select id="findActiveEvent" resultType="com.otr.lotto.domain.Event">
+    <![CDATA[
+    SELECT
+      id,
+      name,
+      event_start,
+      event_end,
+      announce_start,
+      announce_end,
+      max_participants,
+      fixed_first_phone_hash,
+      created_at,
+      updated_at
+    FROM event
+    WHERE #{baseDate} >= event_start 
+      AND #{baseDate} <= event_end
+    LIMIT 1
+    ]]>
+  </select>
+
 </mapper>

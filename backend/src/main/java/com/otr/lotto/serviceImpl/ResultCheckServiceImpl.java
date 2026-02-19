@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ResultCheckServiceImpl implements ResultCheckService {
-    private static final long DEFAULT_EVENT_ID = 1L;
 
     private final EventMapper eventMapper;
     private final ParticipantMapper participantMapper;
@@ -35,12 +34,11 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     @Transactional
     @Override
     public ResultCheckResponse check(ResultCheckRequest request) {
-        Event event = eventMapper.findById(DEFAULT_EVENT_ID);
+        // 현재 발표 기간에 해당하는 이벤트 자동 조회
+        Event event = eventMapper.findActiveEvent(LocalDate.now());
         if (event == null) {
-            throw new ApiException(ErrorCode.NOT_FOUND);
+            throw new ApiException(ErrorCode.ANNOUNCE_NOT_ACTIVE);
         }
-
-        validateAnnouncePeriod(event);
 
         String phoneHash = hashPhone(request.getPhone());
         Participant participant = participantMapper.findByEventAndPhoneHash(event.getId(), phoneHash);
@@ -63,12 +61,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
         return new ResultCheckResponse(null, isWinner, null, null);
     }
 
-    private void validateAnnouncePeriod(Event event) {
-        LocalDate today = LocalDate.now();
-        if (today.isBefore(event.getAnnounceStart()) || today.isAfter(event.getAnnounceEnd())) {
-            throw new ApiException(ErrorCode.ANNOUNCE_NOT_ACTIVE);
-        }
-    }
+
 
     private String hashPhone(String phone) {
         try {

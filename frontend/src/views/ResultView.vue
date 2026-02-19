@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { lottoApi, type ResultCheckResponse } from "../api/lotto";
 
 const phone = ref("");
@@ -7,9 +7,21 @@ const errorMessage = ref("");
 const isLoading = ref(false);
 const submitted = ref(false);
 const checkCount = ref(0);
+const isAnnounceActive = ref<boolean | null>(null);
 const result = ref<ResultCheckResponse | null>(null);
 
 const isFirstCheck = computed(() => checkCount.value === 0);
+const isFormEnabled = computed(() => isAnnounceActive.value === true);
+
+onMounted(async () => {
+  try {
+    const active = await lottoApi.checkAnnounceActive();
+    isAnnounceActive.value = active;
+  } catch (error) {
+    // API 호출 실패 시 기한 외로 간주
+    isAnnounceActive.value = false;
+  }
+});
 
 const resultMessage = computed(() => {
   if (!result.value) return "";
@@ -76,7 +88,19 @@ const resetForm = () => {
         Check your winning status during the announcement period.
       </template>
       <template #content>
-        <form class="form" @submit.prevent="handleSubmit">
+        <!-- 기한 외 메시지 -->
+        <Message v-if="isAnnounceActive === false" severity="error" :closable="false">
+          <strong>Announcement Period Has Ended</strong><br />
+          The announcement period has closed. Thank you for participating.
+        </Message>
+
+        <!-- 확인중 로딩 -->
+        <Message v-else-if="isAnnounceActive === null" severity="info" :closable="false">
+          Loading announcement information...
+        </Message>
+
+        <!-- 기간 내 입력 폼 -->
+        <form v-if="isFormEnabled" class="form" @submit.prevent="handleSubmit">
           <label class="field">
             <span class="field-label">Phone Number</span>
             <InputText
@@ -106,7 +130,7 @@ const resetForm = () => {
           </div>
         </form>
 
-        <Message v-if="errorMessage" severity="warn" :closable="false">
+        <Message v-if="errorMessage && isFormEnabled" severity="warn" :closable="false">
           {{ errorMessage }}
         </Message>
 
