@@ -35,7 +35,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     @Override
     public ResultCheckResponse check(ResultCheckRequest request) {
         // 현재 발표 기간에 해당하는 이벤트 자동 조회
-        Event event = eventMapper.findActiveEvent(LocalDate.now());
+        Event event = eventMapper.findActiveAnnounceEvent(LocalDate.now());
         if (event == null) {
             throw new ApiException(ErrorCode.ANNOUNCE_NOT_ACTIVE);
         }
