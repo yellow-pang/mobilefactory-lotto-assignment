@@ -46,7 +46,8 @@ public class ResultCheckServiceImpl implements ResultCheckService {
             throw new ApiException(ErrorCode.NOT_FOUND);
         }
 
-        int currentCount = participant.getCheckCount() != null ? participant.getCheckCount() : 0;
+        Integer storedCount = participant.getCheckCount();
+        int currentCount = storedCount == null ? 0 : storedCount;
         Prize prize = prizeMapper.findByEventAndParticipantId(event.getId(), participant.getId());
         boolean isWinner = prize != null;
 

@@ -14,6 +14,7 @@
       announce_start,
       announce_end,
       max_participants,
+      winning_number,
       fixed_first_phone_hash,
       created_at,
       updated_at
@@ -31,6 +32,7 @@
       announce_start,
       announce_end,
       max_participants,
+      winning_number,
       fixed_first_phone_hash,
       created_at,
       updated_at
@@ -51,6 +53,7 @@
       announce_start,
       announce_end,
       max_participants,
+      winning_number,
       fixed_first_phone_hash,
       created_at,
       updated_at
@@ -60,5 +63,11 @@
     LIMIT 1
     ]]>
   </select>
+
+  <update id="updateWinningNumber">
+    UPDATE event
+    SET winning_number = #{winningNumber}
+    WHERE id = #{id}
+  </update>
 
 </mapper>
