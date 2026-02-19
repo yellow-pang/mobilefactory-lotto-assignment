@@ -22,6 +22,7 @@
   </select>
 
   <select id="findActiveEvent" resultType="com.otr.lotto.domain.Event">
+    <![CDATA[
     SELECT
       id,
       name,
@@ -37,6 +38,7 @@
     WHERE #{baseDate} >= event_start 
       AND #{baseDate} <= event_end
     LIMIT 1
+    ]]>
   </select>
 
 </mapper>

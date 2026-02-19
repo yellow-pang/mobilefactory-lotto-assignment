@@ -1,15 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { lottoApi, type ParticipateResponse } from "@/api/lotto";
 
 const phone = ref("");
 const submitted = ref(false);
 const errorMessage = ref("");
 const isLoading = ref(false);
+const isEventActive = ref<boolean | null>(null);
 
 const result = ref<ParticipateResponse | null>(null);
 
 const showResult = computed(() => submitted.value && !errorMessage.value);
+const isFormEnabled = computed(() => isEventActive.value === true);
+
+onMounted(async () => {
+  try {
+    const active = await lottoApi.checkEventActive();
+    isEventActive.value = active;
+  } catch (error) {
+    // API 호출 실패 시 기한 외로 간주
+    isEventActive.value = false;
+  }
+});
 
 const handleSubmit = () => {
   errorMessage.value = "";
@@ -52,7 +64,19 @@ const resetForm = () => {
         Submit your phone number to receive a lotto ticket.
       </template>
       <template #content>
-        <form class="form" @submit.prevent="handleSubmit">
+        <!-- 기한 외 메시지 -->
+        <Message v-if="isEventActive === false" severity="error" :closable="false">
+          <strong>Event Period Has Ended</strong><br />
+          Unfortunately, the event period has closed. Please wait for the next event.
+        </Message>
+
+        <!-- 확인중 로딩 -->
+        <Message v-else-if="isEventActive === null" severity="info" :closable="false">
+          Loading event information...
+        </Message>
+
+        <!-- 기간 내 입력 폼 -->
+        <form v-if="isFormEnabled" class="form" @submit.prevent="handleSubmit">
           <label class="field">
             <span class="field-label">Phone Number</span>
             <InputText
@@ -81,7 +105,7 @@ const resetForm = () => {
           </div>
         </form>
 
-        <Message v-if="errorMessage" severity="warn" :closable="false">
+        <Message v-if="errorMessage && isFormEnabled" severity="warn" :closable="false">
           {{ errorMessage }}
         </Message>
 

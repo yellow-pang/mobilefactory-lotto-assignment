@@ -39,6 +39,40 @@ export interface ApiResponse<T> {
 
 export const lottoApi = {
   /**
+   * Check if event period is active
+   */
+  async checkEventActive(): Promise<boolean> {
+    try {
+      // Event API 호출 시도 - 성공하면 기간 내
+      await http.get("/participations/check-period");
+      return true;
+    } catch (error: any) {
+      // EVENT_NOT_ACTIVE 에러면 기한 외
+      if (error?.code === "EVENT_NOT_ACTIVE") {
+        return false;
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Check if announce period is active
+   */
+  async checkAnnounceActive(): Promise<boolean> {
+    try {
+      // Announce API 호출 시도 - 성공하면 기간 내
+      await http.get("/results/check-period");
+      return true;
+    } catch (error: any) {
+      // ANNOUNCE_NOT_ACTIVE 에러면 기한 외
+      if (error?.code === "ANNOUNCE_NOT_ACTIVE") {
+        return false;
+      }
+      throw error;
+    }
+  },
+
+  /**
    * Participate in lotto event
    */
   async participate(request: ParticipateRequest): Promise<ParticipateResponse> {
