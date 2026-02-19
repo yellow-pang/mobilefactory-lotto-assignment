@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { lottoApi, type ParticipateResponse } from "@/api/lotto";
 
 const phone = ref("");
 const submitted = ref(false);
 const errorMessage = ref("");
 const isLoading = ref(false);
 
-const mockResult = ref({
-  participantId: 1287,
-  lottoNumber: "593821",
-});
+const result = ref<ParticipateResponse | null>(null);
 
 const showResult = computed(() => submitted.value && !errorMessage.value);
 
@@ -23,16 +21,26 @@ const handleSubmit = () => {
   }
 
   isLoading.value = true;
-  setTimeout(() => {
-    isLoading.value = false;
-    submitted.value = true;
-  }, 450);
+  lottoApi
+    .participate({ phone: phone.value })
+    .then((data) => {
+      result.value = data;
+      submitted.value = true;
+    })
+    .catch((error) => {
+      errorMessage.value =
+        error?.message || "Failed to participate. Please try again.";
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 };
 
 const resetForm = () => {
   phone.value = "";
   submitted.value = false;
   errorMessage.value = "";
+  result.value = null;
 };
 </script>
 
@@ -52,6 +60,7 @@ const resetForm = () => {
               type="tel"
               placeholder="010-1234-5678"
               class="field-input"
+              :disabled="isLoading"
             />
           </label>
           <div class="actions">
@@ -67,6 +76,7 @@ const resetForm = () => {
               severity="secondary"
               outlined
               @click="resetForm"
+              :disabled="isLoading"
             />
           </div>
         </form>
@@ -80,11 +90,11 @@ const resetForm = () => {
           <div class="result-grid">
             <div class="result-item">
               <span class="result-label">Participant ID</span>
-              <span class="result-value">{{ mockResult.participantId }}</span>
+              <span class="result-value">{{ result?.participantId }}</span>
             </div>
             <div class="result-item">
               <span class="result-label">Lotto Number</span>
-              <span class="result-value">{{ mockResult.lottoNumber }}</span>
+              <span class="result-value">{{ result?.lottoNumber }}</span>
             </div>
           </div>
         </div>
