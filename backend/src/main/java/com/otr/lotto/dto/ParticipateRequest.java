@@ -7,6 +7,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * 로또 이벤트 참여 요청
+ * 
+ * 력로 1개 필드: 휴대폰 번호
+ * 두 차 혁 마면 true
+ * 
+ * 첀증 규칙:
+ * - NotBlank: 10~13자 순 숫자와 하이픈(-) 만 답붕
+ * 
+ * 예시: 010-1234-5678, 01012345678
+ */
 @Getter
 @Setter
 @NoArgsConstructor

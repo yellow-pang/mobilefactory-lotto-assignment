@@ -19,6 +19,15 @@ import com.otr.lotto.service.DrawService;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 로또 당첨 산정 서비스
+ * 
+ * 당첨 식을 실행하는 서비스로, 사전 생성된 번호 풀에서
+ * 당첨자(당첨된 rank 정보)를 읽어 Prize 레코드로 저장하는
+ * 단순한 매핑역할을 수행합니다.
+ * 
+ * 중요 특징: 번호 당첨 로직은 모두 사전에 ticket_pool에서 모두 처리됩니다.
+ */
 @Service
 @RequiredArgsConstructor
 public class DrawServiceImpl implements DrawService {
@@ -27,6 +36,21 @@ public class DrawServiceImpl implements DrawService {
     private final PrizeMapper prizeMapper;
     private final TicketPoolMapper ticketPoolMapper;
 
+    /**
+     * 당첨 산정 실행
+     * 
+     * 당첨 식으로 Prize 레코드를 대량 생성합니다.
+     * 
+     * 동작 로직:
+     * 1. 당첨 결과 슬롯 감지 (대상 1000명)
+     * 2. ticket_pool에서 당첨된 항목(rank ≥ 1) 검색
+     * 3. 각 항목에 대해 Prize 레코드 생성
+     * 4. 대량 삽입
+     * 
+     * @param eventId 당첨 산정을 실행할 이벤트 ID
+     * @return 당첨 산정 결과 (대상 산 등당)
+     * @throws ApiException 당첨 대상 부족 또는 이벤트 미존재 시
+     */
     @Override
     @Transactional
     public DrawResponse executeDraw(Long eventId) {
@@ -61,6 +85,12 @@ public class DrawServiceImpl implements DrawService {
         return buildDrawResponse(eventId);
     }
 
+    /**
+     * 당첨 결과 두른 쌍빔
+     * 
+     * @param eventId 당첨 이벤트 ID
+     * @return 당첨 결과 DTO
+     */
     private DrawResponse buildDrawResponse(Long eventId) {
         DrawResponse response = new DrawResponse();
         response.setEventId(eventId);
