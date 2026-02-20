@@ -278,11 +278,19 @@ public class ParticipationServiceImpl implements ParticipationService {
     private String hashPhone(String phone) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(phone.getBytes(StandardCharsets.UTF_8));
+            String normalized = normalizePhone(phone);
+            byte[] hash = digest.digest(normalized.getBytes(StandardCharsets.UTF_8));
             return toHex(hash);
         } catch (NoSuchAlgorithmException ex) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR);
         }
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        return phone.replaceAll("\\D", "");
     }
 
     private String toHex(byte[] bytes) {
