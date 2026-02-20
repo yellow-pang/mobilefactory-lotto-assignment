@@ -27,4 +27,12 @@ public interface EventMapper {
      * 당첨 번호 업데이트
      */
     int updateWinningNumber(@Param("id") Long id, @Param("winningNumber") String winningNumber);
+
+    /**
+     * 미확인자 알림 발송 대상 이벤트 조회
+     * (발표 시작일 + 10일 = 목표 날짜인 이벤트)
+     * @param targetDate 목표 날짜
+     * @return 알림 발송 대상 이벤트 목록
+     */
+    java.util.List<Event> findEventsReadyForReminder(@Param("targetDate") java.time.LocalDate targetDate);
 }
