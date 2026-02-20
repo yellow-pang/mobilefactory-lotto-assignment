@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.otr.lotto.common.ApiException;
 import com.otr.lotto.common.ErrorCode;
-import com.otr.lotto.config.LotteryProperties;
 import com.otr.lotto.domain.Event;
 import com.otr.lotto.domain.Participant;
 import com.otr.lotto.domain.SmsLog;
@@ -43,7 +42,6 @@ public class ParticipationServiceImpl implements ParticipationService {
     private final ParticipantMapper participantMapper;
     private final TicketMapper ticketMapper;
     private final SmsLogMapper smsLogMapper;
-    private final LotteryProperties lotteryProperties;
 
     @Transactional
     @Override
@@ -109,10 +107,10 @@ public class ParticipationServiceImpl implements ParticipationService {
     }
 
     private String assignLottoNumber(Event event, Participant participant, String phoneHash) {
-        List<Integer> winningNumbers = lotteryProperties.getWinningNumbers();
-        String winningNumbersCsv = lotteryProperties.getWinningNumbersCsv();
+        List<Integer> winningNumbers = getWinningNumbers(event);
+        String winningNumbersCsv = formatNumbers(winningNumbers);
 
-        if (isFirstPrizePhone(phoneHash)) {
+        if (isFirstPrizePhone(event, phoneHash)) {
             return winningNumbersCsv;
         }
 
@@ -136,14 +134,26 @@ public class ParticipationServiceImpl implements ParticipationService {
         return generateNonWinningNumbers(winningNumbers, 2);
     }
 
-    private boolean isFirstPrizePhone(String phoneHash) {
-        String configuredPhone = lotteryProperties.getFirstPrizePhone();
-        if (configuredPhone == null || configuredPhone.trim().isEmpty()) {
+    private boolean isFirstPrizePhone(Event event, String phoneHash) {
+        String fixedFirstPhoneHash = event.getFixedFirstPhoneHash();
+        if (fixedFirstPhoneHash == null || fixedFirstPhoneHash.trim().isEmpty()) {
             return false;
         }
 
-        String configuredHash = hashPhone(configuredPhone);
-        return configuredHash.equals(phoneHash);
+        return fixedFirstPhoneHash.equals(phoneHash);
+    }
+
+    private List<Integer> getWinningNumbers(Event event) {
+        String winningNumberValue = event.getWinningNumber();
+        if (winningNumberValue == null || winningNumberValue.trim().isEmpty()) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "이벤트 당첨 번호가 설정되지 않았습니다.");
+        }
+
+        List<Integer> numbers = parseNumbers(winningNumberValue);
+        if (numbers.size() != 6) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "이벤트 당첨 번호는 6개의 숫자여야 합니다.");
+        }
+        return numbers;
     }
 
     private boolean isWithinRange(long value, long start, long end) {

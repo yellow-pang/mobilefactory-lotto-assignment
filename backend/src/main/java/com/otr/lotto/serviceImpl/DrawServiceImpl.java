@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.otr.lotto.common.ApiException;
 import com.otr.lotto.common.ErrorCode;
-import com.otr.lotto.config.LotteryProperties;
 import com.otr.lotto.domain.Event;
 import com.otr.lotto.domain.Participant;
 import com.otr.lotto.domain.Prize;
@@ -36,7 +35,6 @@ public class DrawServiceImpl implements DrawService {
     private final ParticipantMapper participantMapper;
     private final TicketMapper ticketMapper;
     private final PrizeMapper prizeMapper;
-    private final LotteryProperties lotteryProperties;
 
     @Override
     @Transactional
@@ -55,7 +53,7 @@ public class DrawServiceImpl implements DrawService {
         }
 
         // 3. 당첨 번호 결정 (설정값)
-        List<Integer> winningNumbers = lotteryProperties.getWinningNumbers();
+        List<Integer> winningNumbers = getWinningNumbers(event);
         Participant firstPrizeWinner = findFirstPrizeWinner(eventId, winningNumbers);
         if (firstPrizeWinner == null) {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "당첨 번호와 일치하는 참가자가 없습니다.");
@@ -163,6 +161,19 @@ public class DrawServiceImpl implements DrawService {
         }
         
         return null;
+    }
+
+    private List<Integer> getWinningNumbers(Event event) {
+        String winningNumberValue = event.getWinningNumber();
+        if (winningNumberValue == null || winningNumberValue.trim().isEmpty()) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "이벤트 당첨 번호가 설정되지 않았습니다.");
+        }
+
+        List<Integer> numbers = parseNumbers(winningNumberValue);
+        if (numbers.size() != 6) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST, "이벤트 당첨 번호는 6개의 숫자여야 합니다.");
+        }
+        return numbers;
     }
 
     /**
