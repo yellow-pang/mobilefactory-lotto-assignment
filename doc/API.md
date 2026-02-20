@@ -319,3 +319,106 @@
 - `event_start`, `event_end`, `announce_start`, `announce_end`: `DATE` (LocalDate)
 - `created_at`, `updated_at`, `first_checked_at`, `last_checked_at`: `DATETIME` (LocalDateTime)
 - `sent_date`: `DATE` (LocalDate)
+
+---
+
+## 6. 프론트엔드 기능
+
+### 6.1. 매일 최초 접속 자동 오픈
+
+**기능**: 사용자가 매일 최초로 서비스에 접속할 때 자동으로 이벤트 참여 페이지로 이동합니다.
+
+**구현 방식**:
+
+- localStorage를 사용하여 마지막 방문 날짜(`lotto_last_visit_date`) 저장
+- 접속 시 저장된 날짜와 현재 날짜 비교
+- 다른 날짜이면 최초 접속으로 간주
+
+**동작 흐름**:
+
+1. 사용자가 서비스 접속
+2. App.vue에서 localStorage 확인
+3. 최초 접속이면:
+   - 마지막 방문 날짜 업데이트
+   - 자동으로 `/event` 페이지로 라우팅
+   - **"🎊 매일 최초 접속을 환영합니다!"** 녹색 메시지 표시 (EventView / ResultView)
+4. 같은 날 재접속이면 normal flow 진행
+
+**localStorage 데이터**:
+
+```javascript
+// 저장 형식
+localStorage.setItem("lotto_last_visit_date", "2026-02-20"); // YYYY-MM-DD
+
+// 조회 예시
+const lastDate = localStorage.getItem("lotto_last_visit_date");
+```
+
+**데이터 구조**:
+
+- Key: `lotto_last_visit_date`
+- Value: `YYYY-MM-DD` 형식 문자열 (ISO date)
+- 유효 기간: 매 자정(00:00)에 초기화
+
+**UI 효과**:
+
+- 환영 메시지는 slideDown 애니메이션으로 부드럽게 등장
+- 참여/결과조회 페이지 상단에 위치
+- ❌ 버튼으로 메시지 닫기 가능 (closable)
+
+**주의사항**:
+
+- 브라우저의 개인 정보 보호 모드에서는 localStorage가 제한될 수 있음
+- 각 브라우저별로 별도의 localStorage 사용 (크로스 브라우저 추적 불가)
+- 수동으로 브라우저 캐시 삭제 시 최초 접속으로 재인식
+
+## 6. 프론트엔드 기능
+
+### 6.1. 매일 최초 접속 자동 오픈
+
+**기능**: 사용자가 매일 최초로 서비스에 접속할 때 자동으로 이벤트 참여 페이지로 이동합니다.
+
+**구현 방식**:
+
+- localStorage를 사용하여 마지막 방문 날짜(`lotto_last_visit_date`) 저장
+- 접속 시 저장된 날짜와 현재 날짜 비교
+- 다른 날짜이면 최초 접속으로 간주
+
+**동작 흐름**:
+
+1. 사용자가 서비스 접속
+2. App.vue에서 localStorage 확인
+3. 최초 접속이면:
+   - 마지막 방문 날짜 업데이트
+   - 자동으로 `/event` 페이지로 라우팅
+   - **\"🎊 매일 최초 접속을 환영합니다!\"** 녹색 메시지 표시 (EventView / ResultView)
+4. 같은 날 재접속이면 normal flow 진행
+
+**localStorage 데이터**:
+
+\`\`\`javascript
+// 저장 형식
+localStorage.setItem(\''lotto_last_visit_date'\'', \''2026-02-20'\''); // YYYY-MM-DD
+
+// 조회 예시
+const lastDate = localStorage.getItem(\''lotto_last_visit_date'\'');
+\`\`\`
+
+**데이터 구조**:
+
+- Key: `lotto_last_visit_date`
+- Value: `YYYY-MM-DD` 형식 문자열 (ISO date)
+- 유효 기간: 매 자정(00:00)에 초기화
+
+**UI 효과**:
+
+- 환영 메시지는 slideDown 애니메이션으로 부드럽게 등장
+- 참여/결과조회 페이지 상단에 위치
+- ❌ 버튼으로 메시지 닫기 가능 (closable)
+
+**주의사항**:
+
+- 브라우저의 개인 정보 보호 모드에서는 localStorage가 제한될 수 있음
+- 각 브라우저별로 별도의 localStorage 사용 (크로스 브라우저 추적 불가)
+- 수동으로 브라우저 캐시 삭제 시 최초 접속으로 재인식
+  '"

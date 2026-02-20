@@ -1,6 +1,25 @@
 <script setup lang="ts">
+import { onMounted, provide, ref } from "vue";
+import { useRouter } from "vue-router";
 import { RouterView } from "vue-router";
 import AppLayout from "./components/AppLayout.vue";
+import { checkAndUpdateFirstVisit } from "./utils/visitTracker";
+
+const router = useRouter();
+const isFirstVisit = ref(false);
+
+onMounted(() => {
+  // 최초 접속 여부 확인 및 업데이트
+  isFirstVisit.value = checkAndUpdateFirstVisit();
+
+  // 최초 접속 시 자동으로 event 페이지로 이동
+  if (isFirstVisit.value && router.currentRoute.value.path === "/") {
+    router.push("/event");
+  }
+
+  // 최초 접속 여부를 자식 컴포넌트에 제공
+  provide("isFirstVisit", isFirstVisit);
+});
 </script>
 
 <template>

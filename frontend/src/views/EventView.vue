@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { lottoApi, type ParticipateResponse } from "@/api/lotto";
 
 const phone = ref("");
@@ -7,6 +7,9 @@ const submitted = ref(false);
 const errorMessage = ref("");
 const isLoading = ref(false);
 const isEventActive = ref<boolean | null>(null);
+const isFirstVisit = inject<{ value: boolean }>("isFirstVisit", {
+  value: false,
+});
 
 // 인증 관련 상태
 const verificationCode = ref("");
@@ -145,6 +148,17 @@ const resetForm = () => {
         Submit your phone number to receive a lotto ticket.
       </template>
       <template #content>
+        <!-- 최초 접속 환영 메시지 -->
+        <Message
+          v-if="isFirstVisit.value && isEventActive === true"
+          severity="success"
+          :closable="false"
+          class="welcome-message"
+        >
+          <strong>🎊 매일 최초 접속을 환영합니다!</strong><br />
+          오늘의 로또 위크팅에 참여하세요.
+        </Message>
+
         <!-- 기한 외 메시지 -->
         <Message
           v-if="isEventActive === false"
@@ -367,6 +381,22 @@ const resetForm = () => {
 .result-value {
   font-weight: 600;
   letter-spacing: 0.4px;
+}
+
+.welcome-message {
+  margin-bottom: 16px;
+  animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 640px) {
