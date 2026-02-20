@@ -7,6 +7,7 @@ SET time_zone = '+09:00';
 DROP TABLE IF EXISTS sms_log;
 DROP TABLE IF EXISTS prize;
 DROP TABLE IF EXISTS ticket;
+DROP TABLE IF EXISTS ticket_pool;
 DROP TABLE IF EXISTS participant;
 DROP TABLE IF EXISTS event;
 
@@ -67,6 +68,31 @@ CREATE TABLE ticket (
     UNIQUE (participant_id),
   INDEX idx_ticket_event_participant (event_id, participant_id),
   INDEX idx_ticket_event_number (event_id, lotto_number)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3-1) ticket_pool
+-- 참여 순번 기준 사전 생성된 번호 풀
+CREATE TABLE ticket_pool (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  event_id BIGINT UNSIGNED NOT NULL,
+  seq INT UNSIGNED NOT NULL,
+  lotto_number VARCHAR(32) NOT NULL,
+  rank TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  assigned_participant_id BIGINT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  CONSTRAINT fk_ticket_pool_event
+    FOREIGN KEY (event_id) REFERENCES event(id)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_ticket_pool_participant
+    FOREIGN KEY (assigned_participant_id) REFERENCES participant(id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT uq_ticket_pool_event_seq
+    UNIQUE (event_id, seq),
+  CONSTRAINT uq_ticket_pool_event_participant
+    UNIQUE (event_id, assigned_participant_id),
+  INDEX idx_ticket_pool_event_rank (event_id, rank),
+  INDEX idx_ticket_pool_event_assigned (event_id, assigned_participant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 4) prize
@@ -134,8 +160,8 @@ INSERT INTO event (
   '2025-04-01',
   '2025-04-15',
   10000,
-  NULL,
-  NULL,
+  '3,11,22,33,41,45',
+  SHA2('01012345678', 256), -- original: 010-1234-5678
   NOW(),
   NOW()
 );

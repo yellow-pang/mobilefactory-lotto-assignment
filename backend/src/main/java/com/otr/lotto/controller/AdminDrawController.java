@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.otr.lotto.common.ApiResponse;
 import com.otr.lotto.dto.DrawResponse;
 import com.otr.lotto.dto.ReminderResponse;
+import com.otr.lotto.dto.TicketPoolPrepareResponse;
 import com.otr.lotto.service.DrawService;
 import com.otr.lotto.service.ReminderService;
+import com.otr.lotto.service.TicketPoolService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +22,7 @@ public class AdminDrawController {
 
     private final DrawService drawService;
     private final ReminderService reminderService;
+    private final TicketPoolService ticketPoolService;
 
     /**
      * 당첨 산정 실행
@@ -30,6 +33,18 @@ public class AdminDrawController {
     @PostMapping("/{eventId}/draw")
     public ApiResponse<DrawResponse> executeDraw(@PathVariable Long eventId) {
         DrawResponse response = drawService.executeDraw(eventId);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 번호 풀 사전 생성
+     *
+     * @param eventId 이벤트 ID
+     * @return 생성 결과
+     */
+    @PostMapping("/{eventId}/prepare-tickets")
+    public ApiResponse<TicketPoolPrepareResponse> prepareTickets(@PathVariable Long eventId) {
+        TicketPoolPrepareResponse response = ticketPoolService.preparePool(eventId);
         return ApiResponse.success(response);
     }
 

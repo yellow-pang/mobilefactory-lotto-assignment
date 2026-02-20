@@ -23,6 +23,18 @@ import com.otr.lotto.service.ResultCheckService;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 로또 당첨 결과 조회 서비스
+ * 
+ * 참여자의 휴대폰 번호 기반으로 당첨 여부와 결과를 조회합니다.
+ * 
+ * 특징:
+ * - 활성 발표 기간(announceStart ~ announceEnd)에만 조회 가능
+ * - 첫 조회: rank 반환 (1~4 또는 null)
+ * - 재조회: isWinner 반환 (true/false)
+ * - 조회 횟수와 시간 기록
+ * - 휴대폰 번호는 정규화(숫자만) 후 SHA256 해싱
+ */
 @Service
 @RequiredArgsConstructor
 public class ResultCheckServiceImpl implements ResultCheckService {
@@ -31,6 +43,19 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     private final ParticipantMapper participantMapper;
     private final PrizeMapper prizeMapper;
 
+    /**
+     * 당첨 결과 조회
+     * 
+     * 발표 기간 내에 당첨 여부를 조회합니다.
+     * 조회 횟수에 따라 다른 정보 반환:
+     * 
+     * 1회차: rank(1~4 또는 null)
+     * 2회차 이후: isWinner(true/false)
+     * 
+     * @param request 휴대폰 번호를 포함한 조회 요청
+     * @return 조회 결과 (rank 또는 isWinner, 조회 횟수)
+     * @throws ApiException 발표 기간 미활성, 참여자 미조회, 기타 오류
+     */
     @Transactional
     @Override
     public ResultCheckResponse check(ResultCheckRequest request) {
@@ -69,14 +94,45 @@ public class ResultCheckServiceImpl implements ResultCheckService {
 
 
 
+    /**
+     * 휴대폰 번호 해싱
+     * 
+     * 휴대폰 번호를 정규화(숫자만) 후 SHA256으로 해시합니다.
+     * 
+     * @param phone 원본 휴대폰 번호
+     * @return SHA256 해시값 (16진수 문자열)
+     */
     private String hashPhone(String phone) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(phone.getBytes(StandardCharsets.UTF_8));
+    /**
+     * 휴대폰 번호 정규화
+     * 
+     * 숫자만 추출하여 형식 차이 제거
+     * (예: 010-1234-5678 → 01012345678)
+     * 
+     * @param phone 원본 휴대폰 번호
+     * @return 정규화된 번호 (숫자만)
+     */
+            String normalized = normalizePhone(phone);
+            byte[] hash = digest.digest(normalized.getBytes(StandardCharsets.UTF_8));
             return toHex(hash);
         } catch (NoSuchAlgorithmException ex) {
             throw new ApiException(ErrorCode.INTERNAL_ERROR);
         }
+    /**
+     * 바이트 배열을 16진수 문자열로 변환
+     * 
+     * @param bytes 바이트 배열
+     * @return 16진수 문자열
+     */
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        return phone.replaceAll("\\D", "");
     }
 
     private String toHex(byte[] bytes) {

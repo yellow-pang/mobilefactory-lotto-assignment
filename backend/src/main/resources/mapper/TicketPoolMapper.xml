@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.otr.lotto.mapper.TicketPoolMapper">
+
+  <insert id="insertBatch">
+    INSERT INTO ticket_pool (
+      event_id,
+      seq,
+      lotto_number,
+      rank,
+      assigned_participant_id
+    )
+    VALUES
+    <foreach collection="pools" item="pool" separator=",">
+      (
+        #{pool.eventId},
+        #{pool.seq},
+        #{pool.lottoNumber},
+        #{pool.rank},
+        #{pool.assignedParticipantId}
+      )
+    </foreach>
+  </insert>
+
+  <select id="countByEvent" resultType="long">
+    SELECT COUNT(*)
+    FROM ticket_pool
+    WHERE event_id = #{eventId}
+  </select>
+
+  <select id="findByEventAndSeq" resultType="com.otr.lotto.domain.TicketPool">
+    SELECT
+      id,
+      event_id,
+      seq,
+      lotto_number,
+      rank,
+      assigned_participant_id,
+      created_at
+    FROM ticket_pool
+    WHERE event_id = #{eventId}
+      AND seq = #{seq}
+  </select>
+
+  <select id="findUnassignedByRank" resultType="com.otr.lotto.domain.TicketPool">
+    SELECT
+      id,
+      event_id,
+      seq,
+      lotto_number,
+      rank,
+      assigned_participant_id,
+      created_at
+    FROM ticket_pool
+    WHERE event_id = #{eventId}
+      AND rank = #{rank}
+      AND assigned_participant_id IS NULL
+    ORDER BY seq
+    LIMIT 1
+  </select>
+
+  <update id="updateRankAndNumber">
+    UPDATE ticket_pool
+    SET
+      rank = #{rank},
+      lotto_number = #{lottoNumber}
+    WHERE id = #{id}
+  </update>
+
+  <update id="assignParticipant">
+    UPDATE ticket_pool
+    SET assigned_participant_id = #{participantId}
+    WHERE id = #{id}
+      AND assigned_participant_id IS NULL
+  </update>
+
+  <select id="findAssignedWinners" resultType="com.otr.lotto.domain.TicketPool">
+    SELECT
+      id,
+      event_id,
+      seq,
+      lotto_number,
+      rank,
+      assigned_participant_id,
+      created_at
+    FROM ticket_pool
+    WHERE event_id = #{eventId}
+      AND rank >= 1
+      AND assigned_participant_id IS NOT NULL
+    ORDER BY rank, seq
+  </select>
+
+</mapper>
