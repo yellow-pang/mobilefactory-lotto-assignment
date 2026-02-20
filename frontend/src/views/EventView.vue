@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { lottoApi, type ParticipateResponse } from "@/api/lotto";
 
 const phone = ref("");
@@ -7,6 +7,20 @@ const submitted = ref(false);
 const errorMessage = ref("");
 const isLoading = ref(false);
 const isEventActive = ref<boolean | null>(null);
+const isFirstVisit = inject<{ value: boolean }>("isFirstVisit", {
+  value: false,
+});
+
+// 이벤트 안내 모달 관련 상태
+const isShowEventInfoModal = ref(false);
+const eventInfo = ref({
+  description: "환영합니다. 전화번호를 입력하시면 로또 번호를 전달 드립니다.",
+  eventStart: "2025/02/01",
+  eventEnd: "2025/03/31",
+  announceStart: "2025/04/01",
+  announceEnd: "2025/04/15",
+  message: "기간안에 많은 참여 부탁드려요~!",
+});
 
 // 인증 관련 상태
 const verificationCode = ref("");
@@ -31,6 +45,11 @@ onMounted(async () => {
   try {
     const active = await lottoApi.checkEventActive();
     isEventActive.value = active;
+
+    // 최초 접속이면 이벤트 안내 모달 자동 오픈
+    if (isFirstVisit.value) {
+      isShowEventInfoModal.value = true;
+    }
   } catch (error) {
     // API 호출 실패 시 기한 외로 간주
     isEventActive.value = false;
@@ -139,12 +158,66 @@ const resetForm = () => {
 
 <template>
   <section class="page">
+    <!-- 이벤트 안내 모달 -->
+    <Dialog
+      v-model:visible="isShowEventInfoModal"
+      header="🎯 로또 이벤트 안내"
+      :modal="true"
+      :style="{ width: '90vw', maxWidth: '500px' }"
+      class="event-info-modal"
+    >
+      <div class="modal-content">
+        <p class="modal-description">
+          {{ eventInfo.description }}
+        </p>
+
+        <div class="modal-info-section">
+          <div class="info-group">
+            <span class="info-label">이벤트 기간</span>
+            <span class="info-value"
+              >{{ eventInfo.eventStart }} ~ {{ eventInfo.eventEnd }}</span
+            >
+          </div>
+          <div class="info-group">
+            <span class="info-label">발표 기간</span>
+            <span class="info-value"
+              >{{ eventInfo.announceStart }} ~ {{ eventInfo.announceEnd }}</span
+            >
+          </div>
+        </div>
+
+        <p class="modal-message">
+          {{ eventInfo.message }}
+        </p>
+      </div>
+
+      <template #footer>
+        <Button
+          label="확인"
+          icon="pi pi-check"
+          @click="isShowEventInfoModal = false"
+          autofocus
+        />
+      </template>
+    </Dialog>
+
     <Card>
       <template #title>Event Entry</template>
       <template #subtitle>
         Submit your phone number to receive a lotto ticket.
       </template>
       <template #content>
+        <!-- 최초 접속 환영 메시지 -->
+        <Message
+          v-if="isFirstVisit.value && isEventActive === true"
+          severity="success"
+          :closable="false"
+          class="welcome-message"
+        >
+          <strong>🎊 매일 최초 접속을 환영합니다!</strong><br />
+          오늘의 로또 위크팅에 참여하세요.
+        </Message>
+
         <!-- 기한 외 메시지 -->
         <Message
           v-if="isEventActive === false"
@@ -367,6 +440,74 @@ const resetForm = () => {
 .result-value {
   font-weight: 600;
   letter-spacing: 0.4px;
+}
+
+.welcome-message {
+  margin-bottom: 16px;
+  animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-content {
+  display: grid;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.modal-description {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--app-ink);
+  font-weight: 500;
+}
+
+.modal-info-section {
+  background: rgba(59, 130, 246, 0.05);
+  border-left: 4px solid #3b82f6;
+  padding: 16px;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+}
+
+.info-group {
+  display: grid;
+  gap: 6px;
+}
+
+.info-label {
+  font-size: 13px;
+  color: var(--app-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 15px;
+  color: var(--app-ink);
+  font-weight: 500;
+}
+
+.modal-message {
+  margin: 0;
+  padding: 12px 16px;
+  background: rgba(34, 197, 94, 0.05);
+  border-radius: 8px;
+  color: #16a34a;
+  font-weight: 500;
+  text-align: center;
 }
 
 @media (max-width: 640px) {
