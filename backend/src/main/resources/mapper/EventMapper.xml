@@ -23,7 +23,6 @@
   </select>
 
   <select id="findActiveEvent" resultType="com.otr.lotto.domain.Event">
-    <![CDATA[
     SELECT
       id,
       name,
@@ -37,14 +36,12 @@
       created_at,
       updated_at
     FROM event
-    WHERE #{baseDate} >= event_start 
-      AND #{baseDate} <= event_end
+    WHERE #{baseDate} &gt;= event_start
+      AND #{baseDate} &lt;= event_end
     LIMIT 1
-    ]]>
   </select>
 
   <select id="findActiveAnnounceEvent" resultType="com.otr.lotto.domain.Event">
-    <![CDATA[
     SELECT
       id,
       name,
@@ -58,10 +55,9 @@
       created_at,
       updated_at
     FROM event
-    WHERE #{baseDate} >= announce_start
-      AND #{baseDate} <= announce_end
+    WHERE #{baseDate} &gt;= announce_start
+      AND #{baseDate} &lt;= announce_end
     LIMIT 1
-    ]]>
   </select>
 
   <update id="updateWinningNumber">
@@ -69,5 +65,24 @@
     SET winning_number = #{winningNumber}
     WHERE id = #{id}
   </update>
+
+  <select id="findEventsReadyForReminder" resultType="com.otr.lotto.domain.Event">
+    SELECT
+      id,
+      name,
+      event_start,
+      event_end,
+      announce_start,
+      announce_end,
+      max_participants,
+      winning_number,
+      fixed_first_phone_hash,
+      created_at,
+      updated_at
+    FROM event
+    WHERE DATE_ADD(announce_start, INTERVAL 10 DAY) = #{targetDate}
+      AND announce_start IS NOT NULL
+      AND announce_end IS NOT NULL
+  </select>
 
 </mapper>

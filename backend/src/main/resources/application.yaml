@@ -9,6 +9,14 @@ spring:
     username: lotto_app
     password: passw0rd
     driver-class-name: org.mariadb.jdbc.Driver
+  task:
+    scheduling:
+      pool:
+        size: 2 # 스케줄 스레드 풀 크기
+      thread-name-prefix: reminder- # 스레드 이름 프리픽스
+      shutdown:
+        await-termination: true # 종료 시 실행 중인 작업 완료 대기
+        await-termination-period: 30s # 최대 대기 시간
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
