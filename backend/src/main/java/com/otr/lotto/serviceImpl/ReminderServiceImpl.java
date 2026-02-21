@@ -31,6 +31,7 @@ public class ReminderServiceImpl implements ReminderService {
     private final PrizeMapper prizeMapper;
     private final ParticipantMapper participantMapper;
     private final SmsLogMapper smsLogMapper;
+    private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     @Override
     @Transactional
@@ -44,7 +45,7 @@ public class ReminderServiceImpl implements ReminderService {
         // 2. 발표일로부터 10일 경과 확인
         LocalDate announceStart = event.getAnnounceStart();
         LocalDate targetDate = announceStart.plusDays(10);
-        LocalDate today = LocalDate.now();
+        LocalDate today = currentDateProvider.today();
 
         if (today.isBefore(targetDate)) {
             throw new ApiException(ErrorCode.INVALID_REQUEST);

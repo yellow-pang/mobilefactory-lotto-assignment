@@ -1,7 +1,5 @@
 package com.otr.lotto.controller;
 
-import java.time.LocalDate;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +25,7 @@ public class ParticipationController {
 
     private final ParticipationService participationService;
     private final EventMapper eventMapper;
+    private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     /**
      * 지른 이벤트 기간인지 확인
@@ -35,7 +34,7 @@ public class ParticipationController {
      */
     @GetMapping("/check-period")
     public ApiResponse<Void> checkEventPeriod() {
-        Event event = eventMapper.findActiveEvent(LocalDate.now());
+        Event event = eventMapper.findActiveEvent(currentDateProvider.today());
         if (event == null) {
             throw new ApiException(ErrorCode.EVENT_NOT_ACTIVE);
         }

@@ -3,7 +3,6 @@ package com.otr.lotto.serviceImpl;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
@@ -42,6 +41,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     private final EventMapper eventMapper;
     private final ParticipantMapper participantMapper;
     private final PrizeMapper prizeMapper;
+    private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     /**
      * 당첨 결과 조회
@@ -60,7 +60,7 @@ public class ResultCheckServiceImpl implements ResultCheckService {
     @Override
     public ResultCheckResponse check(ResultCheckRequest request) {
         // 현재 발표 기간에 해당하는 이벤트 자동 조회
-        Event event = eventMapper.findActiveAnnounceEvent(LocalDate.now());
+        Event event = eventMapper.findActiveAnnounceEvent(currentDateProvider.today());
         if (event == null) {
             throw new ApiException(ErrorCode.ANNOUNCE_NOT_ACTIVE);
         }

@@ -30,6 +30,7 @@ public class ReminderScheduler {
 
     private final ReminderService reminderService;
     private final EventMapper eventMapper;
+    private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     /**
      * 매일 자정(00:00:00)에 실행
@@ -43,11 +44,11 @@ public class ReminderScheduler {
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void sendDailyReminders() {
-        log.info("=== 미확인 당첨자 알림 스케줄 시작 ({})", LocalDate.now());
+        LocalDate today = currentDateProvider.today();
+        log.info("=== 미확인 당첨자 알림 스케줄 시작 ({})", today);
 
         try {
             // 1. 발표 시작일 + 10일 = 오늘인 이벤트 조회
-            LocalDate today = LocalDate.now();
             List<Event> targetEvents = eventMapper.findEventsReadyForReminder(today);
 
             if (targetEvents == null || targetEvents.isEmpty()) {
