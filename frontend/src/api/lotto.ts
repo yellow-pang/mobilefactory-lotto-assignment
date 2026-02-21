@@ -84,7 +84,7 @@ export const lottoApi = {
     if (response.success) {
       return response.data;
     }
-    throw new Error(response.error?.message || "Failed to participate");
+    throw new Error(response.error?.message || "참여에 실패했습니다.");
   },
 
   /**
@@ -98,6 +98,6 @@ export const lottoApi = {
     if (response.success) {
       return response.data;
     }
-    throw new Error(response.error?.message || "Failed to check result");
+    throw new Error(response.error?.message || "결과 조회에 실패했습니다.");
   },
 };

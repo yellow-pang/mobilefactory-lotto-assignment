@@ -402,7 +402,7 @@ const lastDate = localStorage.getItem("lotto_last_visit_date");
 │ │ 2025/04/01 ~ 2025/04/15  │   │
 │ └───────────────────────────┘   │
 │                                 │
-│ 기간안에 많은 참여 부탁드려요~! │
+│ 기간 안에 많은 참여 부탁드려요~! │
 │                                 │
 │           [✓ 확인]              │
 └─────────────────────────────────┘
@@ -413,7 +413,7 @@ const lastDate = localStorage.getItem("lotto_last_visit_date");
 - **설명 문구**: "환영합니다. 전화번호를 입력하시면 로또 번호를 전달 드립니다."
 - **이벤트 기간**: `eventStart` ~ `eventEnd`
 - **발표 기간**: `announceStart` ~ `announceEnd`
-- **참여 안내 메시지**: "기간안에 많은 참여 부탁드려요~!"
+- **참여 안내 메시지**: "기간 안에 많은 참여 부탁드려요~!"
 
 **UI 특징**:
 

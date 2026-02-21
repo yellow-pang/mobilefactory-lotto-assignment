@@ -28,7 +28,7 @@ public class ParticipationController {
     private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     /**
-     * 지른 이벤트 기간인지 확인
+        * 현재 이벤트 기간인지 확인
      * - 200 OK: 기간 내
      * - 404: 기간 외
      */

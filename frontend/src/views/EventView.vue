@@ -19,7 +19,7 @@ const eventInfo = ref({
   eventEnd: "2025/03/31",
   announceStart: "2025/04/01",
   announceEnd: "2025/04/15",
-  message: "기간안에 많은 참여 부탁드려요~!",
+  message: "기간 안에 많은 참여 부탁드려요~!",
 });
 
 // 인증 관련 상태
@@ -123,7 +123,7 @@ const handleSubmit = () => {
   }
 
   if (!phone.value.trim()) {
-    errorMessage.value = "Please enter your phone number.";
+    errorMessage.value = "휴대폰 번호를 입력해주세요.";
     return;
   }
 
@@ -136,7 +136,7 @@ const handleSubmit = () => {
     })
     .catch((error) => {
       errorMessage.value =
-        error?.message || "Failed to participate. Please try again.";
+        error?.message || "참여에 실패했습니다. 다시 시도해주세요.";
     })
     .finally(() => {
       isLoading.value = false;
@@ -202,9 +202,9 @@ const resetForm = () => {
     </Dialog>
 
     <Card>
-      <template #title>Event Entry</template>
+      <template #title>이벤트 참여</template>
       <template #subtitle>
-        Submit your phone number to receive a lotto ticket.
+        휴대폰 번호를 입력하면 로또 번호를 받을 수 있습니다.
       </template>
       <template #content>
         <!-- 최초 접속 환영 메시지 -->
@@ -215,7 +215,7 @@ const resetForm = () => {
           class="welcome-message"
         >
           <strong>🎊 매일 최초 접속을 환영합니다!</strong><br />
-          오늘의 로또 위크팅에 참여하세요.
+          오늘의 로또 이벤트에 참여하세요.
         </Message>
 
         <!-- 기한 외 메시지 -->
@@ -224,9 +224,8 @@ const resetForm = () => {
           severity="error"
           :closable="false"
         >
-          <strong>Event Period Has Ended</strong><br />
-          Unfortunately, the event period has closed. Please wait for the next
-          event.
+          <strong>이벤트 기간이 종료되었습니다</strong><br />
+          현재는 참여할 수 없습니다. 다음 이벤트를 기다려주세요.
         </Message>
 
         <!-- 확인중 로딩 -->
@@ -235,13 +234,13 @@ const resetForm = () => {
           severity="info"
           :closable="false"
         >
-          Loading event information...
+          이벤트 정보를 확인하는 중입니다...
         </Message>
 
         <!-- 기간 내 입력 폼 -->
         <form v-if="isFormEnabled" class="form" @submit.prevent="handleSubmit">
           <label class="field">
-            <span class="field-label">Phone Number</span>
+            <span class="field-label">휴대폰 번호</span>
             <div class="phone-input-group">
               <InputText
                 v-model="phone"
@@ -301,14 +300,14 @@ const resetForm = () => {
           <div class="actions">
             <Button
               type="submit"
-              label="Participate"
+              label="참여하기"
               icon="pi pi-ticket"
               :loading="isLoading"
               :disabled="!canParticipate"
             />
             <Button
               type="button"
-              label="Reset"
+              label="초기화"
               severity="secondary"
               outlined
               @click="resetForm"
@@ -333,11 +332,11 @@ const resetForm = () => {
           <div class="result-title">발급된 티켓 정보</div>
           <div class="result-grid">
             <div class="result-item">
-              <span class="result-label">Participant ID</span>
+              <span class="result-label">참여자 ID</span>
               <span class="result-value">{{ result?.participantId }}</span>
             </div>
             <div class="result-item">
-              <span class="result-label">Lotto Number</span>
+              <span class="result-label">로또 번호</span>
               <span class="result-value">{{ result?.lottoNumber }}</span>
             </div>
           </div>
