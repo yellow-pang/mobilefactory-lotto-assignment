@@ -39,4 +39,12 @@ public interface ParticipantMapper {
      * ID로 참여자 조회
      */
     Participant findById(@Param("id") Long id);
+
+    /**
+     * 이벤트별 참여자 삭제 (테스트용)
+     *
+     * @param eventId 이벤트 ID
+     * @return 삭제된 행 수
+     */
+    int deleteByEvent(@Param("eventId") Long eventId);
 }

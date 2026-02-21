@@ -31,6 +31,21 @@
     WHERE event_id = #{eventId}
   </select>
 
+  <select id="countByRank" resultType="long">
+    SELECT COUNT(*)
+    FROM ticket_pool
+    WHERE event_id = #{eventId}
+      AND rank = #{rank}
+  </select>
+
+  <select id="countByRankAndOutOfSeqRange" resultType="long">
+    SELECT COUNT(*)
+    FROM ticket_pool
+    WHERE event_id = #{eventId}
+      AND rank = #{rank}
+      AND (seq &lt; #{minSeq} OR seq &gt; #{maxSeq})
+  </select>
+
   <select id="findByEventAndSeq" resultType="com.otr.lotto.domain.TicketPool">
     SELECT
       id,
@@ -61,6 +76,11 @@
     ORDER BY seq
     LIMIT 1
   </select>
+
+  <delete id="deleteByEvent">
+    DELETE FROM ticket_pool
+    WHERE event_id = #{eventId}
+  </delete>
 
   <update id="updateRankAndNumber">
     UPDATE ticket_pool

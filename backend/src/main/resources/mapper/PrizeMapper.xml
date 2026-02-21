@@ -44,4 +44,9 @@
       AND pt.check_count = 0
   </select>
 
+  <delete id="deleteByEvent">
+    DELETE FROM prize
+    WHERE event_id = #{eventId}
+  </delete>
+
 </mapper>

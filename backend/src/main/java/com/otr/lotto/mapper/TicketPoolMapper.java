@@ -31,6 +31,31 @@ public interface TicketPoolMapper {
     long countByEvent(@Param("eventId") Long eventId);
 
     /**
+     * 이벤트 및 rank별 번호 풀 개수 조회
+     *
+     * @param eventId 이벤트 ID
+     * @param rank 순위 (0/1/2/3/4)
+     * @return 생성된 항목 수
+     */
+    long countByRank(@Param("eventId") Long eventId, @Param("rank") Integer rank);
+
+    /**
+     * 특정 rank의 seq 범위 밖 항목 개수 조회
+     *
+     * @param eventId 이벤트 ID
+     * @param rank 순위 (0/1/2/3/4)
+     * @param minSeq 범위 시작
+     * @param maxSeq 범위 끝
+     * @return 범위 밖 항목 수
+     */
+    long countByRankAndOutOfSeqRange(
+        @Param("eventId") Long eventId,
+        @Param("rank") Integer rank,
+        @Param("minSeq") Long minSeq,
+        @Param("maxSeq") Long maxSeq
+    );
+
+    /**
      * seq를 기준으로 번호 풀 조회
      * 
      * @param eventId 이벤트 ID
@@ -49,6 +74,14 @@ public interface TicketPoolMapper {
      * @return 미배정 TicketPool 항목 (assignedParticipantId = null)
      */
     TicketPool findUnassignedByRank(@Param("eventId") Long eventId, @Param("rank") Integer rank);
+
+    /**
+     * 이벤트별 번호 풀 삭제 (테스트용)
+     *
+     * @param eventId 이벤트 ID
+     * @return 삭제된 행 수
+     */
+    int deleteByEvent(@Param("eventId") Long eventId);
 
     /**
      * 번호 풀 항목의 rank와 번호 업데이트
