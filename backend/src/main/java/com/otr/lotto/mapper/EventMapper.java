@@ -35,4 +35,11 @@ public interface EventMapper {
      * @return 알림 발송 대상 이벤트 목록
      */
     java.util.List<Event> findEventsReadyForReminder(@Param("targetDate") java.time.LocalDate targetDate);
+
+    /**
+     * 모든 이벤트 조회
+     * ticket_pool 부트스트랩용
+     * @return 모든 Event 목록
+     */
+    java.util.List<Event> findAll();
 }

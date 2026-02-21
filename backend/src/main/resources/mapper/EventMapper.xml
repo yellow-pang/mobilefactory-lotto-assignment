@@ -85,4 +85,21 @@
       AND announce_end IS NOT NULL
   </select>
 
+  <select id="findAll" resultType="com.otr.lotto.domain.Event">
+    SELECT
+      id,
+      name,
+      event_start,
+      event_end,
+      announce_start,
+      announce_end,
+      max_participants,
+      winning_number,
+      fixed_first_phone_hash,
+      created_at,
+      updated_at
+    FROM event
+    ORDER BY id
+  </select>
+
 </mapper>
