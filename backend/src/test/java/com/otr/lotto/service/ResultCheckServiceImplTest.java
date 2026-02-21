@@ -1,6 +1,9 @@
 package com.otr.lotto.service;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,13 +15,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.otr.lotto.domain.Prize;
 import com.otr.lotto.dto.ParticipateRequest;
 import com.otr.lotto.dto.ResultCheckRequest;
 import com.otr.lotto.dto.ResultCheckResponse;
 import com.otr.lotto.mapper.PrizeMapper;
-import com.otr.lotto.serviceImpl.DrawServiceImpl;
+import com.otr.lotto.mapper.TicketPoolMapper;
 import com.otr.lotto.serviceImpl.ParticipationServiceImpl;
 import com.otr.lotto.serviceImpl.ResultCheckServiceImpl;
+import com.otr.lotto.serviceImpl.TicketPoolServiceImpl;
 import com.otr.lotto.support.TestDateConfig;
 
 @SpringBootTest
@@ -34,10 +39,13 @@ class ResultCheckServiceImplTest {
     private ParticipationServiceImpl participationService;
 
     @Autowired
-    private DrawServiceImpl drawService;
+    private PrizeMapper prizeMapper;
 
     @Autowired
-    private PrizeMapper prizeMapper;
+    private TicketPoolMapper ticketPoolMapper;
+
+    @Autowired
+    private TicketPoolServiceImpl ticketPoolService;
 
     private Long eventId = 1L;
 
@@ -46,9 +54,9 @@ class ResultCheckServiceImplTest {
         setAnnounceDate();
         // 당첨자 초기화
         prizeMapper.deleteByEvent(eventId);
-        
-        // 당첨 산정 실행
-        drawService.executeDraw(eventId);
+        if (ticketPoolMapper.countByEvent(eventId) == 0) {
+            ticketPoolService.preparePool(eventId);
+        }
     }
 
     private void setEventDate() {
@@ -76,8 +84,10 @@ class ResultCheckServiceImplTest {
 
         // Then
         assertEquals(1, checkRes.getCheckCount(), "첫 조회는 checkCount=1");
-        assertNotNull(checkRes.getRank(), "rank값이 반환되어야 함");
-        // isWinner는 설정되지 않음 (또는 null)
+        Integer rank = checkRes.getRank();
+        if (rank != null) {
+            assertTrue(rank >= 1 && rank <= 4, "rank는 1~4 사이여야 함");
+        }
     }
 
     @Test
@@ -101,7 +111,7 @@ class ResultCheckServiceImplTest {
         // Then
         assertEquals(2, checkRes2.getCheckCount(), "두 번째 조회는 checkCount=2");
         assertNotNull(checkRes2.getIsWinner(), "isWinner값이 반환되어야 함");
-        // rank는 반환되지 않음 (또는 null 또는 기본값)
+        assertFalse(checkRes2.getIsWinner(), "미당첨자는 isWinner=false");
     }
 
     @Test
@@ -111,7 +121,13 @@ class ResultCheckServiceImplTest {
         setEventDate();
         ParticipateRequest participateReq = new ParticipateRequest();
         participateReq.setPhone("010-1234-5678"); // fixed_first_phone_hash
-        participationService.participate(participateReq);
+        var participateRes = participationService.participate(participateReq);
+
+        Prize prize = new Prize();
+        prize.setEventId(eventId);
+        prize.setParticipantId(participateRes.getParticipantId());
+        prize.setRank(1);
+        prizeMapper.insertBatch(List.of(prize));
 
         // When
         setAnnounceDate();
@@ -121,9 +137,8 @@ class ResultCheckServiceImplTest {
 
         // Then: rank는 1~4 중 하나여야 함
         Integer rank = checkRes.getRank();
-        if (rank != null) {
-            assertTrue(rank >= 1 && rank <= 4, "rank는 1~4 사이여야 함");
-        }
+        assertNotNull(rank, "당첨자는 rank가 있어야 함");
+        assertEquals(1, rank, "당첨자는 1등으로 설정됨");
     }
 
     @Test
@@ -142,10 +157,7 @@ class ResultCheckServiceImplTest {
         ResultCheckResponse checkRes = resultCheckService.check(checkReq);
 
         // Then: 미당첨자는 rank=null 또는 isWinner=false
-        if (checkRes.getRank() == null) {
-            // 첫 조회에서 rank=null이면 미당첨
-            assertTrue(true);
-        }
+        assertEquals(null, checkRes.getRank(), "첫 조회에서 미당첨자는 rank=null");
     }
 
     @Test

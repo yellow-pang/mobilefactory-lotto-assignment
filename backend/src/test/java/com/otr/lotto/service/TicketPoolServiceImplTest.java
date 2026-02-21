@@ -1,21 +1,20 @@
 package com.otr.lotto.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Import;
-
-import com.otr.lotto.support.TestDateConfig;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.otr.lotto.dto.TicketPoolPrepareResponse;
 import com.otr.lotto.mapper.EventMapper;
 import com.otr.lotto.mapper.TicketPoolMapper;
 import com.otr.lotto.serviceImpl.TicketPoolServiceImpl;
+import com.otr.lotto.support.TestDateConfig;
 
 @SpringBootTest
 @Transactional
@@ -51,7 +50,7 @@ class TicketPoolServiceImplTest {
 
         // Then: 10,000개 생성됨
         assertEquals(eventId, response.getEventId());
-        assertEquals(10_000, response.getPoolSize());
+        assertEquals(10_000, response.getTotalTickets());
 
         long totalCount = ticketPoolMapper.countByEvent(eventId);
         assertEquals(10_000, totalCount);
@@ -84,7 +83,7 @@ class TicketPoolServiceImplTest {
         ticketPoolService.preparePool(eventId);
 
         // Then: 2등이 2000~7000 범위 내인지 확인
-        long outOfRangeCount = ticketPoolMapper.countByRankAndOutOfSeqRange(eventId, 2, 2000, 7000);
+        long outOfRangeCount = ticketPoolMapper.countByRankAndOutOfSeqRange(eventId, 2, 2000L, 7000L);
         assertEquals(0, outOfRangeCount, "2등은 모두 2000~7000 범위 내여야 함");
     }
 
@@ -95,7 +94,7 @@ class TicketPoolServiceImplTest {
         ticketPoolService.preparePool(eventId);
 
         // Then: 3등이 1000~8000 범위 내인지 확인
-        long outOfRangeCount = ticketPoolMapper.countByRankAndOutOfSeqRange(eventId, 3, 1000, 8000);
+        long outOfRangeCount = ticketPoolMapper.countByRankAndOutOfSeqRange(eventId, 3, 1000L, 8000L);
         assertEquals(0, outOfRangeCount, "3등은 모두 1000~8000 범위 내여야 함");
     }
 
@@ -104,7 +103,7 @@ class TicketPoolServiceImplTest {
     void testPreparePool_Idempotency() {
         // Given: 첫 번째 생성
         TicketPoolPrepareResponse response1 = ticketPoolService.preparePool(eventId);
-        assertEquals(10_000, response1.getPoolSize());
+        assertEquals(10_000, response1.getTotalTickets());
 
         // When: 두 번째 생성 시도 → 예외 발생
         // Then

@@ -21,6 +21,7 @@ import com.otr.lotto.dto.ParticipateResponse;
 import com.otr.lotto.mapper.ParticipantMapper;
 import com.otr.lotto.mapper.TicketPoolMapper;
 import com.otr.lotto.serviceImpl.ParticipationServiceImpl;
+import com.otr.lotto.serviceImpl.TicketPoolServiceImpl;
 import com.otr.lotto.support.TestDateConfig;
 
 @SpringBootTest
@@ -38,6 +39,9 @@ class ParticipationServiceImplTest {
     @Autowired
     private TicketPoolMapper ticketPoolMapper;
 
+    @Autowired
+    private TicketPoolServiceImpl ticketPoolService;
+
     private Long eventId = 1L;
 
     @BeforeEach
@@ -45,6 +49,9 @@ class ParticipationServiceImplTest {
         TestDateConfig.setFixedDate(java.time.LocalDate.of(2025, 2, 15));
         // 테스트 격리: 참가자 초기화
         participantMapper.deleteByEvent(eventId);
+        if (ticketPoolMapper.countByEvent(eventId) == 0) {
+            ticketPoolService.preparePool(eventId);
+        }
     }
 
     @Test
@@ -117,7 +124,6 @@ class ParticipationServiceImplTest {
     @DisplayName("배정되는 로또 번호가 번호 풀과 일치")
     void testParticipate_LottoNumberFromPool() {
         // Given
-        long participantId = 1L;
         ParticipateRequest request = new ParticipateRequest();
         request.setPhone("010-9876-5432");
 
@@ -125,7 +131,7 @@ class ParticipationServiceImplTest {
         ParticipateResponse response = participationService.participate(request);
 
         // Then: 받은 번호가 ticket_pool의 seq 1번과 매핑되어야 함
-        TicketPool pool = ticketPoolMapper.findByEventAndSeq(eventId, participantId);
+        TicketPool pool = ticketPoolMapper.findByEventAndSeq(eventId, response.getParticipantId());
         assertNotNull(pool);
         assertEquals(response.getLottoNumber(), pool.getLottoNumber());
         assertEquals(response.getParticipantId(), pool.getAssignedParticipantId());
