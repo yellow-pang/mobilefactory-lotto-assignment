@@ -329,16 +329,9 @@ const resetForm = () => {
             <strong>참여가 완료되었습니다!</strong><br />
             로또 번호가 SMS로 발송되었습니다.
           </Message>
-          <div class="result-title">발급된 티켓 정보</div>
-          <div class="result-grid">
-            <div class="result-item">
-              <span class="result-label">참여자 ID</span>
-              <span class="result-value">{{ result?.participantId }}</span>
-            </div>
-            <div class="result-item">
-              <span class="result-label">로또 번호</span>
-              <span class="result-value">{{ result?.lottoNumber }}</span>
-            </div>
+          <div class="result-title">발급된 로또 번호</div>
+          <div class="lotto-number-display">
+            {{ result?.lottoNumber }}
           </div>
         </div>
       </template>
@@ -414,6 +407,21 @@ const resetForm = () => {
 .result-title {
   font-weight: 600;
   margin-bottom: 12px;
+  text-align: center;
+  color: var(--app-ink);
+}
+
+.lotto-number-display {
+  padding: 24px 20px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 12px;
+  border: 2px solid #93c5fd;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .result-grid {
