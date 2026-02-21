@@ -425,10 +425,17 @@ const resetForm = () => {
   margin-top: 18px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--app-surface);
   border: 1px solid rgba(31, 36, 48, 0.08);
   display: grid;
   gap: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .result {
+    background: rgba(31, 41, 55, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .result-header {
@@ -444,9 +451,15 @@ const resetForm = () => {
 .result-badge {
   font-size: 12px;
   color: var(--app-muted);
-  background: #f3f6fb;
+  background: rgba(31, 36, 48, 0.05);
   padding: 4px 10px;
   border-radius: 999px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .result-badge {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .hint {

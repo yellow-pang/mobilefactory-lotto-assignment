@@ -400,8 +400,15 @@ const resetForm = () => {
   margin-top: 18px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--app-surface);
   border: 1px solid rgba(31, 36, 48, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .result {
+    background: rgba(31, 41, 55, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .result-title {
@@ -417,11 +424,15 @@ const resetForm = () => {
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #3b82f6;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: var(--lotto-number-color);
+  background: linear-gradient(
+    135deg,
+    var(--lotto-number-bg-start) 0%,
+    var(--lotto-number-bg-end) 100%
+  );
   border-radius: 12px;
-  border: 2px solid #93c5fd;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  border: 2px solid var(--lotto-number-border);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .result-grid {
@@ -435,8 +446,15 @@ const resetForm = () => {
   align-items: center;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #fff;
+  background: var(--app-surface);
   border: 1px solid rgba(31, 36, 48, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .result-item {
+    background: rgba(31, 41, 55, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
 }
 
 .result-label {

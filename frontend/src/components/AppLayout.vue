@@ -58,9 +58,16 @@ const go = (path: string) => {
   align-items: center;
   justify-content: space-between;
   padding: 24px 36px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--app-surface);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(31, 36, 48, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .app-header {
+    background: rgba(31, 41, 55, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .brand {
