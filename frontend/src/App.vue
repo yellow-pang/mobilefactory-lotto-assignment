@@ -4,18 +4,50 @@ import { useRouter } from "vue-router";
 import { RouterView } from "vue-router";
 import AppLayout from "./components/AppLayout.vue";
 import { checkAndUpdateFirstVisit } from "./utils/visitTracker";
+import { lottoApi } from "./api/lotto";
 
 const router = useRouter();
 const isFirstVisit = ref(false);
 
-onMounted(() => {
+/**
+ * 현재 시점에 따라 올바른 페이지로 자동 라우팅
+ * - 이벤트 기간: /event (참여)
+ * - 발표 기간: /result (결과 조회)
+ */
+const routeToCorrectPage = async () => {
+  try {
+    const isEventActive = await lottoApi.checkEventActive();
+    const isAnnounceActive = await lottoApi.checkAnnounceActive();
+
+    const currentPath = router.currentRoute.value.path;
+
+    if (isEventActive && currentPath !== "/event") {
+      // 이벤트 기간 중 → /event로 이동
+      router.push("/event");
+    } else if (isAnnounceActive && currentPath !== "/result") {
+      // 발표 기간 중 → /result로 이동
+      router.push("/result");
+    } else if (!isEventActive && !isAnnounceActive) {
+      // 기간 외 → /event 기본값
+      if (currentPath !== "/event") {
+        router.push("/event");
+      }
+    }
+  } catch (error) {
+    console.error("기간 확인 오류:", error);
+    // 오류 시 /event를 기본값으로 설정
+    if (router.currentRoute.value.path === "/") {
+      router.push("/event");
+    }
+  }
+};
+
+onMounted(async () => {
   // 최초 접속 여부 확인 및 업데이트
   isFirstVisit.value = checkAndUpdateFirstVisit();
 
-  // 최초 접속 시 자동으로 event 페이지로 이동
-  if (isFirstVisit.value && router.currentRoute.value.path === "/") {
-    router.push("/event");
-  }
+  // 현재 시점에 맞는 페이지로 라우팅
+  await routeToCorrectPage();
 
   // 최초 접속 여부를 자식 컴포넌트에 제공
   provide("isFirstVisit", isFirstVisit);
