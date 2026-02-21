@@ -15,14 +15,12 @@ import com.otr.lotto.common.ErrorCode;
 import com.otr.lotto.domain.Event;
 import com.otr.lotto.domain.Participant;
 import com.otr.lotto.domain.SmsLog;
-import com.otr.lotto.domain.Ticket;
 import com.otr.lotto.domain.TicketPool;
 import com.otr.lotto.dto.ParticipateRequest;
 import com.otr.lotto.dto.ParticipateResponse;
 import com.otr.lotto.mapper.EventMapper;
 import com.otr.lotto.mapper.ParticipantMapper;
 import com.otr.lotto.mapper.SmsLogMapper;
-import com.otr.lotto.mapper.TicketMapper;
 import com.otr.lotto.mapper.TicketPoolMapper;
 import com.otr.lotto.service.ParticipationService;
 
@@ -49,7 +47,6 @@ public class ParticipationServiceImpl implements ParticipationService {
 
     private final EventMapper eventMapper;
     private final ParticipantMapper participantMapper;
-    private final TicketMapper ticketMapper;
     private final SmsLogMapper smsLogMapper;
     private final TicketPoolMapper ticketPoolMapper;
 
@@ -99,11 +96,6 @@ public class ParticipationServiceImpl implements ParticipationService {
         }
 
         String lottoNumber = assignLottoNumber(event, participant, phoneHash);
-        Ticket ticket = new Ticket();
-        ticket.setEventId(event.getId());
-        ticket.setParticipantId(participant.getId());
-        ticket.setLottoNumber(lottoNumber);
-        ticketMapper.insert(ticket);
 
         SmsLog smsLog = new SmsLog();
         smsLog.setEventId(event.getId());
