@@ -1,214 +1,258 @@
-# MobileFactory Lotto Assignment
+# MobileFactory Lotto Assignment - 로또 이벤트 시스템
 
-로또 이벤트 시스템 과제용 프로젝트입니다.  
-Vue 3 프론트엔드와 Spring Boot(MyBatis) 백엔드, MariaDB를 사용합니다.
+자사 홈페이지 접속 고객을 대상으로 로또 번호를 무료 발번하고, 당첨일에 번호 확인 및 경품 지급이 가능한 이벤트 시스템입니다.
+
+## 개요
+
+- 이벤트 기간: 2025/02/01 ~ 2025/03/31
+- 발표 기간: 2025/04/01 ~ 2025/04/15
+- 최대 참가자: 10,000명
+- 총 당첨자: 1,000명 (1등 1명, 2등 5명, 3등 44명, 4등 950명)
+
+## 구현 범위
+
+본 과제에서는 전체 요구사항 중 다음 영역을 중심으로 구현했습니다.
+
+- 이벤트 참여 및 중복 참여 방지
+- 로또 번호 발번 및 사전 풀 관리
+- 당첨자 분배 로직 및 조건 제약 처리
+- 결과 확인 정책 (최초 조회 / 재조회 분리)
+- 미확인 당첨자 알림 스케줄링
+- 테스트를 위한 날짜 제어 시스템
+
+문자 발송 및 휴대폰 인증은 실제 외부 연동 대신,
+발송 이력을 DB에 기록하는 방식으로 시스템 구조와 처리 흐름 중심으로 구현했습니다.
+
+## 기술 스택
 
 - Backend: Spring Boot 3.5.10 / Java 17 / MyBatis
 - Frontend: Vue 3 + Vite / TypeScript / Vue Router
-- DB: MariaDB (InnoDB)
-- DB 접속 정보는 환경변수(DB_URL, DB_USERNAME, DB_PASSWORD)로 주입합니다.
+- Database: MariaDB (InnoDB)
 
----
+## 빠른 시작 (로컬 개발)
 
-## Repository Structure
+### 1) 사전 준비
 
-- backend/ : Spring Boot API 서버
-- frontend/ : Vue 웹 클라이언트
-- db/schema.sql : DB 스키마 생성 스크립트(DROP/CREATE 포함)
-- docs/ : 설계 문서 및 ERD(선택)
+- Java 17 이상
+- Node.js (LTS)
+- MariaDB 10.6+
 
----
+### 2) 데이터베이스 설정
 
-## Prerequisites
-
-- Java 17
-- MariaDB
-- Node.js (권장: LTS)
-- (선택) DBeaver
-
----
-
-## Database Setup
-
-1. MariaDB에서 데이터베이스/계정을 준비합니다.
-
-예시(로컬 기준):
-
-- DB: lotto_event
-- User: lotto_app
-
-2. 스키마 적용
-
-DBeaver에서 `db/schema.sql` 내용을 실행하거나, CLI로 실행합니다.
-
-CLI 예시:
+```sql
+-- MariaDB에 로또 DB 생성
+CREATE DATABASE lotto_event CHARACTER SET utf8mb4;
+CREATE USER 'lotto_app'@'localhost' IDENTIFIED BY 'passw0rd';
+GRANT ALL PRIVILEGES ON lotto_event.* TO 'lotto_app'@'localhost';
+```
 
 ```bash
+# 스키마 적용
 mysql -u lotto_app -p lotto_event < db/schema.sql
 ```
 
-주의
+### 3) 환경변수 설정 (Windows PowerShell)
 
-- db/schema.sql에는 DROP TABLE IF EXISTS가 포함되어 있어 기존 테이블/데이터가 삭제될 수 있습니다.
-
-## Backend Setup (Spring Boot)
-
-1. 환경변수 설정
-
-backend/src/main/resources/application.yml은 아래 환경변수를 참조합니다.
-
-- DB_URL
-- DB_USERNAME
-- DB_PASSWORD
-
-Windows PowerShell 예시
+```powershell
 $env:DB_URL="jdbc:mariadb://localhost:3306/lotto_event?serverTimezone=Asia/Seoul&characterEncoding=utf8"
 $env:DB_USERNAME="lotto_app"
-$env:DB_PASSWORD="your_password"
+$env:DB_PASSWORD="passw0rd"
 
-2. 실행
+# 테스트 날짜 설정 (선택 - 이벤트 기간 내)
+$env:TEST_CURRENT_DATE="2025-02-15"
+```
 
-방법 A) 터미널에서 실행
+### 4) 백엔드 실행
+
+```bash
 cd backend
-./gradlew bootRun
+.\gradlew bootRun
+# 성공 시: http://localhost:8080
+```
 
-방법 B) VSCode 실행
+### 5) 프론트엔드 실행 (새 터미널)
 
-- Spring Boot Dashboard에서 LottoApplication 실행
+```bash
+cd frontend
+npm install
+npm run dev
+# 성공 시: http://localhost:5173
+```
 
-참고
+### 6) 웹 테스트
 
-- 환경변수 값은 커밋하지 않습니다.
-- application.yml에는 ${DB_URL}, ${DB_USERNAME}, ${DB_PASSWORD} 형태로만 두는 방식을 사용합니다.
+1. http://localhost:5173 이벤트 페이지 접속
+2. 휴대폰 번호 입력 (예: 010-1234-5678)
+3. 로또 번호 수령
+4. 결과 조회 페이지 이동
+5. 당첨 여부 확인
 
-## Frontend Setup (Vue)
+## 주요 API
 
-1. 의존성 설치
-   cd frontend
-   npm install
+### 참여 API
 
-2. 개발 서버 실행
-   npm run dev
+```http
+POST /api/participations
+{
+  "phone": "010-1234-5678"
+}
 
-참고
+응답:
+{
+  "success": true,
+  "data": {
+    "participantId": 1,
+    "lottoNumber": "3,11,22,33,41,45"
+  }
+}
+```
 
-- 프론트는 Vue 3 + Vite + TypeScript + Vue Router 기반입니다.
-- API 호출은 백엔드 실행 후 확인합니다.
+### 결과 조회 API
 
-## Current Progress
+```http
+POST /api/results/check
+{
+  "phone": "010-1234-5678"
+}
 
-### ✅ 완료된 기능
+첫 조회: { "rank": 2, "checkCount": 1 }
+두 번째 이후: { "isWinner": true, "checkCount": 2 }
+```
 
-#### 백엔드 구현
+### 관리자 API
 
-- **DB 스키마 작성 및 적용 완료** (event/participant/ticket/prize/sms_log)
-- **공통 인프라**:
-  - ApiResponse 래퍼 (성공/실패 통합 응답)
-  - GlobalExceptionHandler (전역 예외 처리)
-  - ErrorCode 열거형 (에러 코드 관리)
-- **참여 API** (`POST /api/participations`):
-  - 이벤트 기간 검증
-  - 참여 인원 제한 (10,000명)
-  - 중복 참여 방지
-  - 6자리 랜덤 로또 번호 발급
-  - SMS 로그 기록
-- **결과 조회 API** (`POST /api/results/check`):
-  - 발표 기간 검증
-  - 첫 조회: 당첨 등수 공개
-  - 두 번째 이후 조회: 당첨/미당첨 여부만 표시
-  - 조회 횟수 및 타임스탬프 관리
-- **관리자 API - 당첨 산정** (`POST /api/admin/events/{eventId}/draw`):
-  - **하이브리드 방식**: 로또 번호 연속 자리수 일치 + Fallback
-  - 1등: fixedFirstPhoneHash 지정 또는 2000~7000번 중 선택
-  - 2등 5명: 2000~7000번 중 5자리 일치 우선
-  - 3등 44명: 1000~8000번 중 4자리 일치 우선
-  - 4등 950명: 전체 중 3자리 일치 우선
-  - 멱등성 보장 (재실행 시 기존 결과 반환)
-- **관리자 API - 미확인 당첨자 안내** (`POST /api/admin/events/{eventId}/remind-unconfirmed`):
-  - 발표일 +10일 경과 확인
-  - check_count = 0인 당첨자 대상
-  - 중복 발송 방지 (날짜별)
-  - SMS 로그 기록
+※ 관리자 API는 이벤트 운영 및 테스트를 위한 내부용 API입니다.
 
-#### 프론트엔드
+eventId는 DB의 event 테이블 또는 초기 데이터 기준 값을 사용합니다.
 
-- Vue 3 + Vite + TypeScript 프로젝트 스캐폴드 생성
-- Vue Router 설정 완료
+```http
+POST /api/admin/events/{eventId}/prepare-tickets  # 번호 생성
+POST /api/admin/events/{eventId}/draw             # 당첨 산정
+POST /api/admin/events/{eventId}/remind-unconfirmed  # 알림 발송
+```
 
-#### 문서
+## 핵심 기능
 
-- **API 명세서** (`doc/API.md`):
-  - 참여/결과 조회/관리자 API 스펙 정의
-  - 당첨 로직 상세 설명 (하이브리드 방식)
-  - 요청/응답 예시 및 에러 코드
-- **ERD**: docs/erd.png (예정 또는 완료)
+본 시스템은 최대 10,000명 규모의 이벤트를 고려하여 번호 사전 생성 + 풀 기반 배정 방식으로 설계되었습니다.
 
-### 🔧 기술 스택 상세
+### 1) 로또 번호 생성
 
-**Backend**:
+- 사전 생성: 애플리케이션 시작 시 10,000개 번호 미리 생성
+- Rank 배분: 1등(1) / 2등(5) / 3등(44) / 4등(950) / 비당첨(9,000)
+- Seq 제약: 2등(2000~7000) / 3등(1000~8000) / 1,4등(1~10000)
 
-- Spring Boot 3.5.10, Java 17
-- MyBatis 3.0.5 (XML 매퍼)
-- Lombok (생성자 주입)
-- Jakarta Validation
-- Transaction 관리 (@Transactional)
+### 2) 특정 휴대폰 1등 보장
 
-**Frontend**:
+- fixed_first_phone_hash로 지정된 휴대폰이 참여하면 1등 번호 배정
+- 현재 설정: SHA2('01012345678', 256)
 
-- Vue 3 Composition API
-- TypeScript
-- Vite
-- Vue Router
+### 3) 중복 참여 방지
 
-**Database**:
+- 휴대폰 해시(phone_hash) 기반 UNIQUE 제약
+- 휴대폰 형식 정규화 (010-1234-5678 = 01012345678)
 
-- MariaDB (InnoDB)
-- SHA-256 해시 기반 전화번호 보안
-- 인덱스: phone_hash, event_id, participant_id
+### 4) 결과 조회 정책
 
-### 📋 API 엔드포인트
+- 첫 조회: 당첨 등수 공개 (rank: 1~4 또는 null)
+- 재조회: 당첨/미당첨만 표시 (isWinner: true/false)
 
-| Method | Endpoint                                         | 설명               |
-| ------ | ------------------------------------------------ | ------------------ |
-| POST   | `/api/participations`                            | 로또 이벤트 참여   |
-| POST   | `/api/results/check`                             | 당첨 결과 조회     |
-| POST   | `/api/admin/events/{eventId}/draw`               | 당첨 산정 실행     |
-| POST   | `/api/admin/events/{eventId}/remind-unconfirmed` | 미확인 당첨자 안내 |
+### 5) 미확인 당첨자 알림
 
-상세 API 스펙은 `doc/API.md` 참조.
+- 스케줄러: 매일 자정 자동 실행
+- 조건: 발표 시작일 + 10일 경과 + check_count=0
+- 중복 방지: 날짜별 SMS 로그 확인
 
-### 🎯 핵심 구현 포인트
+## 단위 테스트
 
-1. **당첨 로직 (하이브리드 방식)**:
-   - 1등 당첨자의 번호를 당첨 번호로 설정
-   - 연속 자리수 일치 우선 선택 (6자리→5자리→4자리→3자리)
-   - 일치자 부족 시 후보군에서 랜덤 선택으로 정확한 당첨자 수 보장
+```bash
+cd backend
+.\gradlew test
 
-2. **멱등성 보장**:
-   - 당첨 산정: 이미 1,000개 Prize 존재 시 재산정 없이 결과 반환
-   - 안내 발송: 날짜별 중복 발송 방지
+# 특정 테스트만 실행
+.\gradlew test --tests TicketPoolServiceImplTest
+.\gradlew test --tests ParticipationServiceImplTest
+.\gradlew test --tests ResultCheckServiceImplTest
+```
 
-3. **보안**:
-   - 전화번호는 SHA-256 해시로 저장 (평문 미저장)
-   - phone_hash로 중복 참여 및 결과 조회 처리
+## 날짜 제어 시스템
 
-4. **비즈니스 로직**:
-   - 이벤트 기간 검증 (참여: eventStart~eventEnd / 발표: announceStart~announceEnd)
-   - 참여 인원 제한 (최대 10,000명)
-   - 결과 조회 정책 (1회: 등수 공개 / 2회 이상: 당첨 여부만)
+테스트를 위한 날짜 제어 구현:
 
-### 📝 간소화 사항 (주니어 과제용)
+```java
+// CurrentDateProvider.java
+public LocalDate today() {
+    String testDate = System.getenv("TEST_CURRENT_DATE");
+    return testDate != null ? LocalDate.parse(testDate) : LocalDate.now();
+}
+```
 
-- SMS 발송 실제 연동 없음 (로그만 기록)
-- 프론트엔드는 스캐폴드만 생성 (UI 미구현)
-- 인증/인가 없음 (관리자 API 보안 없음)
-- 단일 이벤트 (eventId=1) 가정
-- 연속 자리수 일치 방식 (순서 무관 매칭 대신 구현 단순화)
+사용 예:
 
-## Notes
+```powershell
+# 이벤트 기간
+$env:TEST_CURRENT_DATE="2025-02-15"
 
-- 문자 발송(SMS/카카오)은 외부 연동 없이 Mock 처리합니다.
-  - 번호는 API 응답/화면에 표시
-  - 발송 이력은 sms_log 테이블에 기록하는 방식으로 설계합니다.
-- 휴대폰 번호 원문은 저장하지 않고 해시(phone_hash)로 저장하는 방향을 사용합니다.
-- 과제 제출을 위해 README에 로컬 실행 재현 절차를 우선 정리합니다.
+# 발표 기간
+$env:TEST_CURRENT_DATE="2025-04-05"
+
+# 발표 +10일 (알림 발송 테스트)
+$env:TEST_CURRENT_DATE="2025-04-11"
+```
+
+## 최종 완료 현황
+
+### 백엔드
+
+- DB 스키마 완성
+- 핵심 API 구현 (참여, 결과 조회, 관리자)
+- 비즈니스 로직 전체
+- 스케줄러 (미확인 당첨자 알림)
+- 날짜 제어 시스템 (TEST_CURRENT_DATE)
+- DummyController 제거
+- 단위 테스트 3개
+- 전역 예외 처리
+
+### 프론트엔드
+
+- Vue 3 프로젝트
+- 라우터 설정
+- API 호출 추상화
+- 이벤트/결과 페이지
+
+## 레포지토리 파일
+
+- backend/: Spring Boot API 서버
+- frontend/: Vue 3 클라이언트
+- db/schema.sql: DB 스키마
+
+## 트러블슈팅
+
+Q: 이벤트 기간이 아닙니다 에러
+
+```powershell
+$env:TEST_CURRENT_DATE="2025-02-15"
+```
+
+Q: 포트 8080 사용 중
+
+```bash
+netstat -ano | find "8080"
+taskkill /PID <PID> /F
+```
+
+Q: 환경변수 설정 안됨
+
+```powershell
+$env:DB_URL="jdbc:mariadb://localhost:3306/lotto_event?serverTimezone=Asia/Seoul&characterEncoding=utf8"
+```
+
+## 설계 및 구현 문서
+
+본 README에서 요약한 내용의 상세 설계 및 구현 근거는 아래 문서에 정리되어 있습니다.
+
+- 요구사항 해석 및 설계 방향
+- DB 설계 및 ERD
+- 당첨 로직 및 상태 관리 흐름
+- 이벤트 전체 처리 시나리오
+
+Notion 문서: https://clumsy-failing-2f1.notion.site/308b5958ea4b80398f7bddaeaf52a53f?source=copy_link

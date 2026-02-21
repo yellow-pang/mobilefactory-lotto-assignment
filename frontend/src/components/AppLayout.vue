@@ -18,18 +18,18 @@ const go = (path: string) => {
       <div class="brand">
         <div class="brand-mark" />
         <div>
-          <div class="brand-title">Lotto Event</div>
-          <div class="brand-subtitle">Participation & Result</div>
+          <div class="brand-title">로또 이벤트</div>
+          <div class="brand-subtitle">참여 및 결과</div>
         </div>
       </div>
       <div class="nav-actions">
         <Button
-          label="Event Entry"
+          label="이벤트 참여"
           :outlined="!isActive('/event')"
           @click="go('/event')"
         />
         <Button
-          label="Result Check"
+          label="결과 확인"
           :outlined="!isActive('/result')"
           @click="go('/result')"
         />
@@ -41,7 +41,7 @@ const go = (path: string) => {
     </main>
 
     <footer class="app-footer">
-      <span>MobileFactory Lotto Assignment</span>
+      <span>MobileFactory 로또 과제</span>
     </footer>
   </div>
 </template>
@@ -58,9 +58,16 @@ const go = (path: string) => {
   align-items: center;
   justify-content: space-between;
   padding: 24px 36px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--app-surface);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(31, 36, 48, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .app-header {
+    background: rgba(31, 41, 55, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .brand {

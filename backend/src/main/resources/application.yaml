@@ -18,6 +18,10 @@ spring:
         await-termination: true # 종료 시 실행 중인 작업 완료 대기
         await-termination-period: 30s # 최대 대기 시간
 
+# 테스트/개발 환경 설정
+test:
+  current-date: 2025-02-15 # 테스트용 고정 날짜 (이벤트 기간 내)
+
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.otr.lotto

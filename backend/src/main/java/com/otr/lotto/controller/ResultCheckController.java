@@ -1,7 +1,5 @@
 package com.otr.lotto.controller;
 
-import java.time.LocalDate;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +25,7 @@ public class ResultCheckController {
 
     private final ResultCheckService resultCheckService;
     private final EventMapper eventMapper;
+    private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     /**
      * 발표 기간 확인
@@ -35,7 +34,7 @@ public class ResultCheckController {
      */
     @GetMapping("/check-period")
     public ApiResponse<Void> checkAnnouncePeriod() {
-        Event event = eventMapper.findActiveAnnounceEvent(LocalDate.now());
+        Event event = eventMapper.findActiveAnnounceEvent(currentDateProvider.today());
         if (event == null) {
             throw new ApiException(ErrorCode.ANNOUNCE_NOT_ACTIVE);
         }

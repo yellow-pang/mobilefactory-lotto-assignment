@@ -61,22 +61,25 @@ const resultMessage = computed(() => {
 
   if (isFirstCheck.value) {
     if (result.value.rank === null || result.value.rank === undefined) {
-      return "Not a winner this time.";
+      return "이번에는 당첨되지 않았습니다.";
     }
-    return `Congratulations! Rank ${result.value.rank}.`;
+    return `축하합니다! ${result.value.rank}등입니다.`;
   }
 
   return result.value.isWinner
-    ? "Winner confirmed."
-    : "Not a winner this time.";
+    ? "당첨이 확인되었습니다."
+    : "이번에는 당첨되지 않았습니다.";
 });
 
-const resultTone = computed(() =>
-  resultMessage.value.includes("Congratulations") ||
-  resultMessage.value.includes("Winner")
-    ? "success"
-    : "warn",
-);
+const isWinningResult = computed(() => {
+  if (!result.value) return false;
+  if (isFirstCheck.value) {
+    return result.value.rank !== null && result.value.rank !== undefined;
+  }
+  return Boolean(result.value.isWinner);
+});
+
+const resultTone = computed(() => (isWinningResult.value ? "success" : "warn"));
 
 const sendVerificationCode = () => {
   verificationError.value = "";
@@ -144,7 +147,7 @@ const handleSubmit = () => {
   }
 
   if (!phone.value.trim()) {
-    errorMessage.value = "Please enter your phone number.";
+    errorMessage.value = "휴대폰 번호를 입력해주세요.";
     return;
   }
 
@@ -158,7 +161,7 @@ const handleSubmit = () => {
     })
     .catch((error) => {
       errorMessage.value =
-        error?.message || "Failed to check result. Please try again.";
+        error?.message || "결과 조회에 실패했습니다. 다시 시도해주세요.";
     })
     .finally(() => {
       isLoading.value = false;
@@ -224,9 +227,9 @@ const resetForm = () => {
     </Dialog>
 
     <Card>
-      <template #title>Result Check</template>
+      <template #title>결과 확인</template>
       <template #subtitle>
-        Check your winning status during the announcement period.
+        발표 기간에 당첨 여부를 확인할 수 있습니다.
       </template>
       <template #content>
         <!-- 최초 접속 환영 메시지 -->
@@ -246,8 +249,8 @@ const resetForm = () => {
           severity="error"
           :closable="false"
         >
-          <strong>Announcement Period Has Ended</strong><br />
-          The announcement period has closed. Thank you for participating.
+          <strong>발표 기간이 종료되었습니다</strong><br />
+          참여해주셔서 감사합니다.
         </Message>
 
         <!-- 확인중 로딩 -->
@@ -256,13 +259,13 @@ const resetForm = () => {
           severity="info"
           :closable="false"
         >
-          Loading announcement information...
+          발표 기간 정보를 확인하는 중입니다...
         </Message>
 
         <!-- 기간 내 입력 폼 -->
         <form v-if="isFormEnabled" class="form" @submit.prevent="handleSubmit">
           <label class="field">
-            <span class="field-label">Phone Number</span>
+            <span class="field-label">휴대폰 번호</span>
             <div class="phone-input-group">
               <InputText
                 v-model="phone"
@@ -322,14 +325,14 @@ const resetForm = () => {
           <div class="actions">
             <Button
               type="submit"
-              label="Check Result"
+              label="결과 확인"
               icon="pi pi-search"
               :loading="isLoading"
               :disabled="!canCheckResult"
             />
             <Button
               type="button"
-              label="Reset"
+              label="초기화"
               severity="secondary"
               outlined
               @click="resetForm"
@@ -348,16 +351,16 @@ const resetForm = () => {
 
         <div v-if="submitted && result" class="result">
           <div class="result-header">
-            <div class="result-title">Status</div>
+            <div class="result-title">결과</div>
             <span class="result-badge">
-              {{ isFirstCheck ? "First Check" : "Re-check" }}
+              {{ isFirstCheck ? "첫 조회" : "재조회" }}
             </span>
           </div>
           <Message :severity="resultTone" :closable="false">
             {{ resultMessage }}
           </Message>
           <div v-if="isFirstCheck" class="hint">
-            First check shows rank. Re-check hides the rank.
+            첫 조회에서는 등수를, 재조회에서는 당첨 여부만 표시합니다.
           </div>
         </div>
       </template>
@@ -422,10 +425,17 @@ const resetForm = () => {
   margin-top: 18px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--app-surface);
   border: 1px solid rgba(31, 36, 48, 0.08);
   display: grid;
   gap: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .result {
+    background: rgba(31, 41, 55, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .result-header {
@@ -441,9 +451,15 @@ const resetForm = () => {
 .result-badge {
   font-size: 12px;
   color: var(--app-muted);
-  background: #f3f6fb;
+  background: rgba(31, 36, 48, 0.05);
   padding: 4px 10px;
   border-radius: 999px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .result-badge {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .hint {

@@ -10,12 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-import lombok.Getter;
-import lombok.Setter;
 
 @RestController
 @RequestMapping("/api/test")
-public class DummyController {
+public class TestDummyController {
 
     @GetMapping("/success")
     public ApiResponse<DummyData> testSuccess() {
@@ -28,7 +26,7 @@ public class DummyController {
     }
 
     @GetMapping("/error")
-    public ApiResponse<?> testError(@RequestParam String errorCode) {
+    public ApiResponse<?> testError(@RequestParam("errorCode") String errorCode) {
         ErrorCode code = ErrorCode.valueOf(errorCode);
         throw new ApiException(code);
     }
@@ -48,24 +46,45 @@ public class DummyController {
         throw new RuntimeException("Internal server error test");
     }
 
-    @Getter
+    public static class DummyRequest {
+        @NotBlank
+        private String name;
+
+        @Positive
+        private Integer age;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+    }
+
     public static class DummyData {
-        private final String name;
-        private final int value;
+        private String name;
+        private int value;
 
         public DummyData(String name, int value) {
             this.name = name;
             this.value = value;
         }
-    }
 
-    @Getter
-    @Setter
-    public static class DummyRequest {
-        @NotBlank(message = "이름은 필수입니다.")
-        private String name;
+        public String getName() {
+            return name;
+        }
 
-        @Positive(message = "나이는 0 이상이어야 합니다.")
-        private int age;
+        public int getValue() {
+            return value;
+        }
     }
 }

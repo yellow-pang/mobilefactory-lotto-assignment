@@ -25,4 +25,12 @@ public interface PrizeMapper {
      * 미확인 당첨자 조회 (check_count = 0인 당첨자)
      */
     List<Prize> findUnconfirmedWinners(@Param("eventId") Long eventId);
+
+    /**
+     * 이벤트별 당첨자 삭제 (테스트용)
+     *
+     * @param eventId 이벤트 ID
+     * @return 삭제된 행 수
+     */
+    int deleteByEvent(@Param("eventId") Long eventId);
 }

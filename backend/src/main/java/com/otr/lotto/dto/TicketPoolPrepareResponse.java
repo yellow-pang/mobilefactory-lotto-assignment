@@ -10,10 +10,11 @@ import lombok.Setter;
  * 
  * AdminDrawController POST /{eventId}/prepare-tickets API 응답 DTO
  * 
- * 10,000개 당첸 번호 사전 생성 둈료 식 담리 반환
+ * 10,000개 로또 번호 풀 사전 생성 결과를 반환합니다.
  * 
- * 게식
- * - 당첸 분서 단춙 뇌깐른 뿬d대루 컴다
+ * 형식:
+ * - eventId: 이벤트 ID
+ * - totalTickets: 생성된 번호 수
  */
 @Getter
 @Setter

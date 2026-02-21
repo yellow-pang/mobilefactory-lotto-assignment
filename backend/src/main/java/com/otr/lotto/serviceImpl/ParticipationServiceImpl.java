@@ -3,7 +3,6 @@ package com.otr.lotto.serviceImpl;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
 import java.util.Objects;
 
 import org.springframework.dao.DuplicateKeyException;
@@ -49,6 +48,7 @@ public class ParticipationServiceImpl implements ParticipationService {
     private final ParticipantMapper participantMapper;
     private final SmsLogMapper smsLogMapper;
     private final TicketPoolMapper ticketPoolMapper;
+    private final com.otr.lotto.common.CurrentDateProvider currentDateProvider;
 
     /**
      * 로또 이벤트 참여 처리
@@ -69,7 +69,7 @@ public class ParticipationServiceImpl implements ParticipationService {
     @Override
     public ParticipateResponse participate(ParticipateRequest request) {
         // 현재 활성화된 이벤트 자동 조회
-        Event event = eventMapper.findActiveEvent(LocalDate.now());
+        Event event = eventMapper.findActiveEvent(currentDateProvider.today());
         if (event == null) {
             throw new ApiException(ErrorCode.EVENT_NOT_ACTIVE);
         }
@@ -102,7 +102,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         smsLog.setParticipantId(participant.getId());
         smsLog.setPhoneHash(phoneHash);
         smsLog.setType(SMS_TYPE_PARTICIPATION_NUMBER);
-        smsLog.setSentDate(LocalDate.now());
+        smsLog.setSentDate(currentDateProvider.today());
         smsLog.setStatus(SMS_STATUS_SENT);
         smsLogMapper.insert(smsLog);
 

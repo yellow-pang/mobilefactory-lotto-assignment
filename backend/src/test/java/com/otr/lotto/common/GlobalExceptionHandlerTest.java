@@ -3,6 +3,8 @@ package com.otr.lotto.common;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -12,10 +14,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = { GlobalExceptionHandlerTest.TestConfig.class, TestDummyController.class, GlobalExceptionHandler.class })
 @AutoConfigureMockMvc
 @DisplayName("GlobalExceptionHandler와 ApiResponse 응답 포맷 테스트")
 class GlobalExceptionHandlerTest {
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    static class TestConfig {
+    }
 
     @Autowired
     private MockMvc mockMvc;
