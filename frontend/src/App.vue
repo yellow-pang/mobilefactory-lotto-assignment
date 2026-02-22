@@ -9,6 +9,10 @@ import { lottoApi } from "./api/lotto";
 const router = useRouter();
 const isFirstVisit = ref(false);
 
+// setup 최상단에서 바로 provide 실행
+// ref이므로 나중에 값이 변경되면 자식도 감지함
+provide("isFirstVisit", isFirstVisit);
+
 /**
  * 현재 시점에 따라 올바른 페이지로 자동 라우팅
  * - 이벤트 기간: /event (참여)
@@ -48,9 +52,6 @@ onMounted(async () => {
 
   // 현재 시점에 맞는 페이지로 라우팅
   await routeToCorrectPage();
-
-  // 최초 접속 여부를 자식 컴포넌트에 제공
-  provide("isFirstVisit", isFirstVisit);
 });
 </script>
 

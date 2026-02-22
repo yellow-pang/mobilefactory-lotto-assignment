@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
 import { lottoApi, type ParticipateResponse } from "@/api/lotto";
+import EventInfoModal from "@/components/EventInfoModal.vue";
 
 const phone = ref("");
 const submitted = ref(false);
@@ -159,47 +160,11 @@ const resetForm = () => {
 <template>
   <section class="page">
     <!-- 이벤트 안내 모달 -->
-    <Dialog
-      v-model:visible="isShowEventInfoModal"
-      header="🎯 로또 이벤트 안내"
-      :modal="true"
-      :style="{ width: '90vw', maxWidth: '500px' }"
-      class="event-info-modal"
-    >
-      <div class="modal-content">
-        <p class="modal-description">
-          {{ eventInfo.description }}
-        </p>
-
-        <div class="modal-info-section">
-          <div class="info-group">
-            <span class="info-label">이벤트 기간</span>
-            <span class="info-value"
-              >{{ eventInfo.eventStart }} ~ {{ eventInfo.eventEnd }}</span
-            >
-          </div>
-          <div class="info-group">
-            <span class="info-label">발표 기간</span>
-            <span class="info-value"
-              >{{ eventInfo.announceStart }} ~ {{ eventInfo.announceEnd }}</span
-            >
-          </div>
-        </div>
-
-        <p class="modal-message">
-          {{ eventInfo.message }}
-        </p>
-      </div>
-
-      <template #footer>
-        <Button
-          label="확인"
-          icon="pi pi-check"
-          @click="isShowEventInfoModal = false"
-          autofocus
-        />
-      </template>
-    </Dialog>
+    <EventInfoModal
+      :isOpen="isShowEventInfoModal"
+      :eventInfo="eventInfo"
+      @close="isShowEventInfoModal = false"
+    />
 
     <Card>
       <template #title>이벤트 참여</template>
