@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
 import { lottoApi, type ResultCheckResponse } from "../api/lotto";
+import EventInfoModal from "@/components/EventInfoModal.vue";
 
 const phone = ref("");
 const errorMessage = ref("");
 const isLoading = ref(false);
 const submitted = ref(false);
+const isEventActive = ref<boolean | null>(null);
 const isAnnounceActive = ref<boolean | null>(null);
 const result = ref<ResultCheckResponse | null>(null);
 const isFirstVisit = inject<{ value: boolean }>("isFirstVisit", {
@@ -43,8 +45,11 @@ const canCheckResult = computed(() => isVerified.value && !isLoading.value);
 
 onMounted(async () => {
   try {
-    const active = await lottoApi.checkAnnounceActive();
-    isAnnounceActive.value = active;
+    const eventActive = await lottoApi.checkEventActive();
+    isEventActive.value = eventActive;
+
+    const announceActive = await lottoApi.checkAnnounceActive();
+    isAnnounceActive.value = announceActive;
 
     // 최초 접속이면 이벤트 안내 모달 자동 오픈
     if (isFirstVisit.value) {
@@ -52,6 +57,7 @@ onMounted(async () => {
     }
   } catch (error) {
     // API 호출 실패 시 기한 외로 간주
+    isEventActive.value = false;
     isAnnounceActive.value = false;
   }
 });
@@ -184,47 +190,11 @@ const resetForm = () => {
 <template>
   <section class="page">
     <!-- 이벤트 안내 모달 -->
-    <Dialog
-      v-model:visible="isShowEventInfoModal"
-      header="🎯 로또 이벤트 안내"
-      :modal="true"
-      :style="{ width: '90vw', maxWidth: '500px' }"
-      class="event-info-modal"
-    >
-      <div class="modal-content">
-        <p class="modal-description">
-          {{ eventInfo.description }}
-        </p>
-
-        <div class="modal-info-section">
-          <div class="info-group">
-            <span class="info-label">이벤트 기간</span>
-            <span class="info-value"
-              >{{ eventInfo.eventStart }} ~ {{ eventInfo.eventEnd }}</span
-            >
-          </div>
-          <div class="info-group">
-            <span class="info-label">발표 기간</span>
-            <span class="info-value"
-              >{{ eventInfo.announceStart }} ~ {{ eventInfo.announceEnd }}</span
-            >
-          </div>
-        </div>
-
-        <p class="modal-message">
-          {{ eventInfo.message }}
-        </p>
-      </div>
-
-      <template #footer>
-        <Button
-          label="확인"
-          icon="pi pi-check"
-          @click="isShowEventInfoModal = false"
-          autofocus
-        />
-      </template>
-    </Dialog>
+    <EventInfoModal
+      :isOpen="isShowEventInfoModal"
+      :eventInfo="eventInfo"
+      @close="isShowEventInfoModal = false"
+    />
 
     <Card>
       <template #title>결과 확인</template>
@@ -243,9 +213,20 @@ const resetForm = () => {
           오늘의 당첨 결과를 확인하세요.
         </Message>
 
-        <!-- 기한 외 메시지 -->
+        <!-- 이벤트 기간 중이지만 발표 기간 아님 -->
         <Message
-          v-if="isAnnounceActive === false"
+          v-if="isEventActive === true && isAnnounceActive === false"
+          severity="warn"
+          :closable="false"
+        >
+          <strong>⏳ 아직 결과 발표 전입니다.</strong><br />
+          발표 기간({{ eventInfo.announceStart }} ~
+          {{ eventInfo.announceEnd }})을 기다려주세요.
+        </Message>
+
+        <!-- 이벤트 기간도 발표 기간도 아님 (기간 종료) -->
+        <Message
+          v-else-if="isEventActive === false && isAnnounceActive === false"
           severity="error"
           :closable="false"
         >
@@ -255,11 +236,11 @@ const resetForm = () => {
 
         <!-- 확인중 로딩 -->
         <Message
-          v-else-if="isAnnounceActive === null"
+          v-else-if="isAnnounceActive === null || isEventActive === null"
           severity="info"
           :closable="false"
         >
-          발표 기간 정보를 확인하는 중입니다...
+          기간 정보를 확인하는 중입니다...
         </Message>
 
         <!-- 기간 내 입력 폼 -->
