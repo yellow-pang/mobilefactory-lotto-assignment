@@ -28,6 +28,9 @@ out/
 
 ### NetBeans ###
 /nbproject/private/
+
+### Local Development ###
+src/main/resources/application-local.yaml
 /nbbuild/
 /dist/
 /nbdist/

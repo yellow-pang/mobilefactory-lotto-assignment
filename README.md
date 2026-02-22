@@ -42,32 +42,81 @@
 ```sql
 -- MariaDB에 로또 DB 생성
 CREATE DATABASE lotto_event CHARACTER SET utf8mb4;
-CREATE USER 'lotto_app'@'localhost' IDENTIFIED BY 'passw0rd';
-GRANT ALL PRIVILEGES ON lotto_event.* TO 'lotto_app'@'localhost';
+CREATE USER '[username]'@'localhost' IDENTIFIED BY '[password]';
+GRANT ALL PRIVILEGES ON lotto_event.* TO '[username]'@'localhost';
 ```
 
 ```bash
 # 스키마 적용
-mysql -u lotto_app -p lotto_event < db/schema.sql
+mysql -u [username] -p lotto_event < db/schema.sql
 ```
 
-### 3) 환경변수 설정 (Windows PowerShell)
+### 3) 로컬 개발 환경 설정
 
-```powershell
-$env:DB_URL="jdbc:mariadb://localhost:3306/lotto_event?serverTimezone=Asia/Seoul&characterEncoding=utf8"
-$env:DB_USERNAME="lotto_app"
-$env:DB_PASSWORD="passw0rd"
+#### IDE에서 개발할 때 (권장)
 
-# 테스트 날짜 설정 (선택 - 이벤트 기간 내)
-$env:TEST_CURRENT_DATE="2025-02-15"
+1. `application-local.yaml` 생성 (`.gitignore`에 등록되어 있어 안전함)
+
+`backend/src/main/resources/application-local.yaml`:
+
+```yaml
+spring:
+  application:
+    name: lotto
+  datasource:
+    url: jdbc:mariadb://localhost:3306/lotto_event?serverTimezone=Asia/Seoul&characterEncoding=utf8
+    username: [your_username]
+    password: [your_password]
+    driver-class-name: org.mariadb.jdbc.Driver
+  task:
+    scheduling:
+      pool:
+        size: 2
+      thread-name-prefix: reminder-
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+
+test:
+  current-date: 2025-02-15
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.otr.lotto
+  configuration:
+    map-underscore-to-camel-case: true
+```
+
+2. **IDE에서 바로 실행 가능** (별도 설정 불필요)
+   - `application.yaml`에 `spring.profiles.default: local` 설정이 되어 있어
+   - IDE에서 실행하면 자동으로 `application-local.yaml` 사용
+
+3. 또는 Gradle 명령어로 실행:
+
+```bash
+cd backend
+.\gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
 ### 4) 백엔드 실행
 
 ```bash
 cd backend
-.\gradlew bootRun
+# IDE 설정 후 실행 또는
+.\gradlew bootRun --args='--spring.profiles.active=local'
+
 # 성공 시: http://localhost:8080
+```
+
+#### JAR 빌드 후 실행 (환경변수 필수)
+
+```powershell
+# Windows PowerShell
+$env:DB_URL="jdbc:mariadb://[서버]:3306/[데이터베이스]?serverTimezone=Asia/Seoul&characterEncoding=utf8"
+$env:DB_USERNAME="[사용자명]"
+$env:DB_PASSWORD="[비밀번호]"
+
+java -jar backend/build/libs/lotto-0.0.1-SNAPSHOT.jar
 ```
 
 ### 5) 프론트엔드 실행 (새 터미널)

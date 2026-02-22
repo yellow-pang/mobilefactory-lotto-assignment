@@ -1,9 +1,12 @@
 spring:
   application:
     name: lotto
-  profiles:
-    default: local # IDE에서 기본으로 사용할 profile (환경변수 없을 때)
   datasource:
+    # 환경변수로 설정해야 함
+    # Windows PowerShell:
+    # $env:DB_URL="jdbc:mariadb://localhost:3306/lotto_event?serverTimezone=Asia/Seoul&characterEncoding=utf8"
+    # $env:DB_USERNAME="[your_username]"
+    # $env:DB_PASSWORD="[your_password]"
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
